@@ -1,0 +1,46 @@
+// SPDX-License-Identifier: EPL-2.0
+// headlamp_tekton/stc/pages/PipelineRuns.tsx
+
+import { SectionBox, SimpleTable } from '@kinvolk/headlamp-plugin/lib/components/common';
+import { PipelineRunClass } from '../crd/pipelinerun';
+import { LinkToResource } from '../components/LinkToResource';
+
+export function PipelineRunsPage() {
+  const [items] = PipelineRunClass.useList();
+
+  if (!items) return <div style={{ padding: 16 }}>Loading...</div>;
+
+  return (
+    <SectionBox title="PipelineRuns">
+      <SimpleTable
+        data={items}
+        emptyMessage="No PipelineRuns found."
+        columns={[
+          {
+            label: 'Name',
+            getter: item => (
+              <LinkToResource
+                name={item.metadata.name}
+                kind="PipelineRun"
+                namespace={item.metadata.namespace}
+              />
+            ),
+          },
+          {
+            label: 'Pipeline',
+            getter: item => item.spec?.pipelineRef?.name ?? '-',
+          },
+          {
+            label: 'Status',
+            getter: item =>
+              item.status?.conditions?.[0]?.reason ?? 'Unknown',
+          },
+          {
+            label: 'Age',
+            getter: item => item.metadata?.creationTimestamp ?? '-',
+          },
+        ]}
+      />
+    </SectionBox>
+  );
+}
