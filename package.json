@@ -3,14 +3,9 @@
     "version": "0.2.0",
     "description": "Headlamp plugin for tekton IPAM and BGP visualization",
     "exports": {
-        "./src/crd/pipeline": "./src/crd/pipeline.ts",
-        "./src/crd/pipelinerun": "./src/crd/pipelinerun.ts",
-        "./src/crd/task": "./src/crd/task.ts",
-        "./src/crd/taskrun": "./src/crd/taskrun.ts",
-        "./src/crd/triggertemplate": "./src/crd/triggertemplate.ts",
-        "./src/crd/trigger": "./src/crd/trigger.ts",
-        "./src/crd/eventlistener": "./src/crd/eventlistener.ts",
-        "./src/crd/clusterinterceptor": "./src/crd/clusterinterceptor.ts"
+        "./crd": "./src/crd/index.ts",
+        "./src/crd": "./src/crd/index.ts",
+        "./src/crd/*": "./src/crd/*.ts"
     },
     "scripts": {
         "start": "headlamp-plugin start",
