@@ -9,7 +9,7 @@
 import React from "react";
 import { Icon } from "@iconify/react";
 import { ResourceSource } from "@kinvolk/headlamp-plugin/lib/components/resourceMap";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { buildTektonGraph } from "./tektonGraphBuilder";
 import { NodeDetails } from "../components/NodeDetails";
 
@@ -21,6 +21,7 @@ import { TriggerBindingClass } from "../crd/trigger";
 import { TriggerTemplateClass } from "../crd/triggertemplate";
 import { EventListenerClass } from "../crd/eventlistener";
 import { ClusterInterceptorClass } from "../crd/clusterinterceptor";
+import { ConcolorPolicyProfileClass } from "../crd/concolor";
 
 function objectNamespace(obj: any): string | undefined {
   return obj?.metadata?.namespace;
@@ -63,6 +64,38 @@ function onlyWhenNoNamespaceSelected<T extends any>(
   return selectedNamespaces.length === 0 ? items : [];
 }
 
+function useGraphInterop() {
+  const [version, setVersion] = useState(0);
+
+  useEffect(() => {
+    const win = window as any;
+    win.__headlampGraphInterop = win.__headlampGraphInterop || {};
+    win.__headlampGraphInterop.tekton = true;
+    window.dispatchEvent(new CustomEvent("headlamp-graph-interop-change"));
+
+    const onChange = () => setVersion((value) => value + 1);
+    window.addEventListener("headlamp-graph-interop-change", onChange);
+
+    return () => {
+      win.__headlampGraphInterop.tekton = false;
+      window.removeEventListener("headlamp-graph-interop-change", onChange);
+      window.dispatchEvent(new CustomEvent("headlamp-graph-interop-change"));
+    };
+  }, []);
+
+  const interop =
+    typeof window !== "undefined"
+      ? ((window as any).__headlampGraphInterop || {})
+      : {};
+
+  return {
+    version,
+    suppressConcolorPolicyRuntimeEdges: Boolean(
+      interop.calico || interop.concolor,
+    ),
+  };
+}
+
 export const tektonSource: ResourceSource = {
   id: "tekton",
   label: "Tekton",
@@ -72,6 +105,7 @@ export const tektonSource: ResourceSource = {
   useData() {
     const locationHref = typeof window !== "undefined" ? window.location.href : "";
     const selectedNamespaces = selectedNamespacesFromLocation();
+    const interop = useGraphInterop();
 
     const [pipelines] = PipelineClass.useList();
     const [pipelineRuns] = PipelineRunClass.useList();
@@ -81,6 +115,7 @@ export const tektonSource: ResourceSource = {
     const [templates] = TriggerTemplateClass.useList();
     const [listeners] = EventListenerClass.useList();
     const [interceptors] = ClusterInterceptorClass.useList();
+    const [concolorProfiles] = ConcolorPolicyProfileClass.useList();
 
     return useMemo(() => {
       const allReady =
@@ -91,7 +126,8 @@ export const tektonSource: ResourceSource = {
         bindings !== null &&
         templates !== null &&
         listeners !== null &&
-        interceptors !== null;
+        interceptors !== null &&
+        concolorProfiles !== null;
 
       if (!allReady) return { nodes: [], edges: [] };
 
@@ -104,6 +140,7 @@ export const tektonSource: ResourceSource = {
         templates: templates ?? [],
         listeners: listeners ?? [],
         interceptors: interceptors ?? [],
+        concolorProfiles: concolorProfiles ?? [],
       };
 
       const input = {
@@ -117,8 +154,11 @@ export const tektonSource: ResourceSource = {
         // Headlamp re-groups selected-namespace maps after the source returns data.
         // Cluster-scoped nodes disturb that layout, so they are shown only in the full/global map.
         interceptors: onlyWhenNoNamespaceSelected(raw.interceptors, selectedNamespaces),
+        concolorProfiles: filterBySelectedNamespaces(raw.concolorProfiles, selectedNamespaces),
         selectedNamespaces,
         selectedNamespace: selectedNamespaces[0],
+        suppressConcolorPolicyRuntimeEdges:
+          interop.suppressConcolorPolicyRuntimeEdges,
       };
 
       const { graphNodes, edges } = buildTektonGraph(input);
@@ -136,7 +176,9 @@ export const tektonSource: ResourceSource = {
       templates,
       listeners,
       interceptors,
+      concolorProfiles,
       locationHref,
+      interop.version,
     ]);
   },
 };

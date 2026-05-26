@@ -27,6 +27,8 @@ type Args = {
   templates?: any[];
   listeners?: any[];
   interceptors?: any[];
+  concolorProfiles?: any[];
+  suppressConcolorPolicyRuntimeEdges?: boolean;
 
   // Accepted for compatibility with existing callers. Filtering happens in tektonSource.
   selectedNamespace?: string;
@@ -61,6 +63,7 @@ const L = {
   pipelineTask: "tekton.dev/pipelineTask",
   pipelineTaskAlt: "tekton.dev/pipeline-task",
   task: "tekton.dev/task",
+  concolorPolicyPrefix: "concolor.projectcalico.org/policy.",
 } as const;
 
 const meta = (o: any) => o?.metadata || {};
@@ -145,6 +148,32 @@ function taskNameForTaskRun(taskRun: any) {
     taskRun?.spec?.taskRef?.name,
     labels(taskRun)[L.task],
     annotations(taskRun)[L.task],
+  );
+}
+
+function hasPolicyMediatedPipelineRunEdge(taskRun: any, pipelineRun: any, profiles: any[]) {
+  if (!pipelineRun) return false;
+
+  const taskRunLabels = labels(taskRun);
+  const pipelineRunLabels = labels(pipelineRun);
+  const selectors = profiles
+    .filter((profile) => profile?.status?.generatedCalicoPolicy)
+    .map((profile) => profile?.status?.selectorLabel)
+    .filter((selector) => selector?.key && selector?.value);
+
+  if (selectors.length > 0) {
+    return selectors.some(
+      (selector) =>
+        taskRunLabels[selector.key] === selector.value &&
+        pipelineRunLabels[selector.key] === selector.value,
+    );
+  }
+
+  const concolorLabels = Object.entries(taskRunLabels).filter(([label]) =>
+    label.startsWith(L.concolorPolicyPrefix),
+  );
+  return concolorLabels.some(
+    ([label, value]) => pipelineRunLabels[label] === value,
   );
 }
 
@@ -476,6 +505,8 @@ export function buildTektonGraph({
   templates = [],
   listeners = [],
   interceptors = [],
+  concolorProfiles = [],
+  suppressConcolorPolicyRuntimeEdges = false,
 }: Args) {
   const nodes = new Map<string, TektonNode>();
   const edges = new Map<string, GraphEdge>();
@@ -571,7 +602,12 @@ export function buildTektonGraph({
       taskRunId,
       "taskRun",
     );
-    link(taskRunId, pipelineRunId, "pipelineRun");
+    if (
+      !suppressConcolorPolicyRuntimeEdges ||
+      !hasPolicyMediatedPipelineRunEdge(run, pipelineRun, concolorProfiles)
+    ) {
+      link(taskRunId, pipelineRunId, "pipelineRun");
+    }
   });
 
   templates.forEach((template) => {

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: EPL-2.0
 
 export * from './clusterinterceptor';
+export * from './concolor';
 export * from './eventlistener';
 export * from './pipeline';
 export * from './pipelinerun';
