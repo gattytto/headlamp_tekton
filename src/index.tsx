@@ -3,10 +3,11 @@
 
 import { registerTektonSidebar } from './sidebar';
 import { registerTektonRoutes } from './routes';
-import { registerKindIcon, registerMapSource } from '@kinvolk/headlamp-plugin/lib';
+import { registerKindIcon, registerKubeObjectGlance, registerMapSource } from '@kinvolk/headlamp-plugin/lib';
 import { tektonSource } from './map/tektonSource';
 import { Icon, addIcon } from '@iconify/react';
 import customSvgIcon from './favicon.svg?raw';
+import { TektonGlance } from './components/TektonGlance';
 
 addIcon('custom:tekton', {
   body: customSvgIcon,
@@ -35,4 +36,5 @@ const tektonKindIcon = {
 
 registerTektonSidebar();
 registerTektonRoutes();
+registerKubeObjectGlance({ id: 'tekton-glance', component: TektonGlance });
 registerMapSource(tektonSource);

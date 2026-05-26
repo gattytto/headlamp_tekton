@@ -47,9 +47,9 @@ export function registerTektonSidebar() {
   });
 
   registerSidebarEntry({
-  name: 'ClusterInterceptors',
-  url: '/tekton/clusterinterceptors',
-  parent: 'Tekton',
-  label: 'ClusterInterceptors',
-});
+    name: 'ClusterInterceptors',
+    url: '/tekton/clusterinterceptors',
+    parent: 'Tekton',
+    label: 'ClusterInterceptors',
+  });
 }

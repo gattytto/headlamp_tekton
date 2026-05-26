@@ -21,9 +21,6 @@ import { ClusterInterceptorDetailsPage } from './pages/ClusterInterceptorDetails
 import { ClusterInterceptorsPage } from './pages/ClusterInterceptors';
 
 export function registerTektonRoutes() {
-  // ----------------------
-  // Overview
-  // ----------------------
   registerRoute({
     path: '/tekton/overview',
     sidebar: 'Tekton',
@@ -31,9 +28,6 @@ export function registerTektonRoutes() {
     component: OverviewPage,
   });
 
-  // ----------------------
-  // Pipelines
-  // ----------------------
   registerRoute({
     path: '/tekton/pipelines',
     sidebar: 'Tekton',
@@ -46,11 +40,9 @@ export function registerTektonRoutes() {
     path: '/tekton/pipelines/:namespace/:name', 
     component: PipelineDetailsPage,
     name: 'pipeline-details',
+    sidebar: null,
   });
 
-  // ----------------------
-  // PipelineRuns
-  // ----------------------
   registerRoute({
     path: '/tekton/pipelineruns',
     sidebar: 'Tekton',
@@ -63,11 +55,9 @@ export function registerTektonRoutes() {
     path: '/tekton/pipelineruns/:namespace/:name', 
     component: PipelineRunDetailsPage,
     name: 'pipelinerun-details',
+    sidebar: null,
   });
 
-  // ----------------------
-  // Tasks
-  // ----------------------
   registerRoute({
     path: '/tekton/tasks',
     sidebar: 'Tekton',
@@ -80,11 +70,9 @@ export function registerTektonRoutes() {
     path: '/tekton/tasks/:namespace/:name', 
     component: TaskDetailsPage,
     name: 'task-details',
+    sidebar: null,
   });
 
-  // ----------------------
-  // TaskRuns
-  // ----------------------
   registerRoute({
     path: '/tekton/taskruns',
     sidebar: 'Tekton',
@@ -97,11 +85,9 @@ export function registerTektonRoutes() {
     path: '/tekton/taskruns/:namespace/:name', 
     component: TaskRunDetailsPage,
     name: 'taskrun-details',
+    sidebar: null,
   });
 
-  // ----------------------
-  // Triggers (list page)
-  // ----------------------
   registerRoute({
     path: '/tekton/triggers',
     sidebar: 'Tekton',
@@ -110,40 +96,32 @@ export function registerTektonRoutes() {
     component: TriggersPage,
   });
 
-  // ----------------------
-  // TriggerBinding
-  // ----------------------
   registerRoute({
     path: '/tekton/triggerbindings/:namespace/:name', 
     component: TriggerBindingDetailsPage,
     name: 'trigger-binding-details',
+    sidebar: null,
   });
 
-  // ----------------------
-  // TriggerTemplate
-  // ----------------------
   registerRoute({
     path: '/tekton/triggertemplates/:namespace/:name', 
     component: TriggerTemplateDetailsPage,
     name: 'trigger-template-details', 
+    sidebar: null,
   });
 
-  // ----------------------
-  // EventListener
-  // ----------------------
   registerRoute({
     path: '/tekton/eventlisteners/:namespace/:name', 
     component: EventListenerDetailsPage,
     name: 'event-listener-details', 
+    sidebar: null,
   });
 
-  // ----------------------
-  // ClusterInterceptor (cluster-scoped)
-  // ----------------------
   registerRoute({
     path: '/tekton/clusterinterceptors/:name',
     component: ClusterInterceptorDetailsPage,
     name: 'clusterinterceptor-details',
+    sidebar: null,
   });
 
   registerRoute({
