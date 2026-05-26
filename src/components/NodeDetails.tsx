@@ -69,6 +69,10 @@ function resourceTypeFor(kind?: string) {
   }
 }
 
+function clusterOf(obj: any) {
+  return obj?.cluster || obj?._clusterName;
+}
+
 export function NodeDetails({ node }: Props) {
   if (!node) return <SectionBox title="Details">No node selected</SectionBox>;
 
@@ -98,6 +102,7 @@ export function NodeDetails({ node }: Props) {
         resourceType={resourceType as any}
         name={obj.metadata.name}
         namespace={obj.metadata.namespace}
+        cluster={clusterOf(obj)}
         withEvents
         extraInfo={item => item && mainInfoRows(item)}
         extraSections={item => (item ? extraSectionsFor(item) : [])}
