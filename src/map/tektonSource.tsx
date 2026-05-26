@@ -75,12 +75,6 @@ function useGraphInterop() {
       (win.__headlampGraphInterop.counts.tekton || 0) + 1;
     win.__headlampGraphInterop.tekton =
       win.__headlampGraphInterop.counts.tekton > 0;
-    console.info("[tekton-map-interop]", "source enabled", {
-      interop: {
-        ...win.__headlampGraphInterop,
-        counts: { ...win.__headlampGraphInterop.counts },
-      },
-    });
     window.dispatchEvent(new CustomEvent("headlamp-graph-interop-change"));
 
     const onChange = () => setVersion((value) => value + 1);
@@ -93,12 +87,6 @@ function useGraphInterop() {
       );
       win.__headlampGraphInterop.tekton =
         win.__headlampGraphInterop.counts.tekton > 0;
-      console.info("[tekton-map-interop]", "source disabled", {
-        interop: {
-          ...win.__headlampGraphInterop,
-          counts: { ...win.__headlampGraphInterop.counts },
-        },
-      });
       window.removeEventListener("headlamp-graph-interop-change", onChange);
       window.dispatchEvent(new CustomEvent("headlamp-graph-interop-change"));
     };
@@ -186,16 +174,6 @@ export const tektonSource: ResourceSource = {
         suppressConcolorPolicyRuntimeEdges:
           interop.suppressConcolorPolicyRuntimeEdges,
       };
-
-      console.info("[tekton-map-interop]", "build input", {
-        selectedNamespaces,
-        interop: interop.interop,
-        suppressConcolorPolicyRuntimeEdges:
-          interop.suppressConcolorPolicyRuntimeEdges,
-        concolorProfiles: input.concolorProfiles.length,
-        taskRuns: input.taskRuns.length,
-        pipelineRuns: input.pipelineRuns.length,
-      });
 
       const { graphNodes, edges } = buildTektonGraph(input);
 
