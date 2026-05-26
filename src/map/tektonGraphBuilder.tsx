@@ -152,7 +152,15 @@ function taskNameForTaskRun(taskRun: any) {
 }
 
 function hasPolicyMediatedPipelineRunEdge(taskRun: any, pipelineRun: any, profiles: any[]) {
-  if (!pipelineRun) return false;
+  const debug = (...args: any[]) => console.info("[tekton-map-interop]", ...args);
+
+  if (!pipelineRun) {
+    debug("no pipelineRun object for TaskRun", {
+      taskRun: `${nsOf(taskRun)}/${nameOf(taskRun)}`,
+      profiles: profiles.length,
+    });
+    return false;
+  }
 
   const taskRunLabels = labels(taskRun);
   const pipelineRunLabels = labels(pipelineRun);
@@ -162,19 +170,48 @@ function hasPolicyMediatedPipelineRunEdge(taskRun: any, pipelineRun: any, profil
     .filter((selector) => selector?.key && selector?.value);
 
   if (selectors.length > 0) {
-    return selectors.some(
+    const matched = selectors.some(
       (selector) =>
         taskRunLabels[selector.key] === selector.value &&
         pipelineRunLabels[selector.key] === selector.value,
     );
+    debug("profile-based suppression check", {
+      taskRun: `${nsOf(taskRun)}/${nameOf(taskRun)}`,
+      pipelineRun: `${nsOf(pipelineRun)}/${nameOf(pipelineRun)}`,
+      selectors,
+      matched,
+      taskRunConcolorLabels: Object.fromEntries(
+        Object.entries(taskRunLabels).filter(([label]) =>
+          label.startsWith(L.concolorPolicyPrefix),
+        ),
+      ),
+      pipelineRunConcolorLabels: Object.fromEntries(
+        Object.entries(pipelineRunLabels).filter(([label]) =>
+          label.startsWith(L.concolorPolicyPrefix),
+        ),
+      ),
+    });
+    return matched;
   }
 
   const concolorLabels = Object.entries(taskRunLabels).filter(([label]) =>
     label.startsWith(L.concolorPolicyPrefix),
   );
-  return concolorLabels.some(
+  const matched = concolorLabels.some(
     ([label, value]) => pipelineRunLabels[label] === value,
   );
+  debug("fallback label suppression check", {
+    taskRun: `${nsOf(taskRun)}/${nameOf(taskRun)}`,
+    pipelineRun: `${nsOf(pipelineRun)}/${nameOf(pipelineRun)}`,
+    taskRunConcolorLabels: Object.fromEntries(concolorLabels),
+    pipelineRunConcolorLabels: Object.fromEntries(
+      Object.entries(pipelineRunLabels).filter(([label]) =>
+        label.startsWith(L.concolorPolicyPrefix),
+      ),
+    ),
+    matched,
+  });
+  return matched;
 }
 
 function pipelineNameForRun(pipelineRun: any, namespacePipelines: any[]) {
@@ -602,9 +639,21 @@ export function buildTektonGraph({
       taskRunId,
       "taskRun",
     );
+    const suppressDirectPipelineRunEdge =
+      suppressConcolorPolicyRuntimeEdges &&
+      hasPolicyMediatedPipelineRunEdge(run, pipelineRun, concolorProfiles);
+
+    console.info("[tekton-map-interop]", "TaskRun -> PipelineRun decision", {
+      taskRun: `${ns}/${runName}`,
+      pipelineRun: pipelineRunName ? `${ns}/${pipelineRunName}` : undefined,
+      suppressConcolorPolicyRuntimeEdges,
+      suppressDirectPipelineRunEdge,
+      concolorProfiles: concolorProfiles.length,
+    });
+
     if (
       !suppressConcolorPolicyRuntimeEdges ||
-      !hasPolicyMediatedPipelineRunEdge(run, pipelineRun, concolorProfiles)
+      !suppressDirectPipelineRunEdge
     ) {
       link(taskRunId, pipelineRunId, "pipelineRun");
     }
