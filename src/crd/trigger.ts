@@ -8,6 +8,14 @@ export class TriggerBindingClass extends KubeObject<KubeObjectInterface> {
   static kind = 'TriggerBinding';
   static apiName = 'triggerbindings';
   static isNamespaced = true;
+
+  static get detailsRoute() {
+    return 'trigger-binding-details';
+  }
+
+  static get listRoute() {
+    return 'Triggers';
+  }
 }
 
 export class EventListenerClass extends KubeObject<KubeObjectInterface> {
@@ -15,6 +23,14 @@ export class EventListenerClass extends KubeObject<KubeObjectInterface> {
   static kind = 'EventListener';
   static apiName = 'eventlisteners';
   static isNamespaced = true;
+
+  static get detailsRoute() {
+    return 'event-listener-details';
+  }
+
+  static get listRoute() {
+    return 'Triggers';
+  }
 }
 
 export class ClusterInterceptorClass extends KubeObject<KubeObjectInterface> {
@@ -22,4 +38,12 @@ export class ClusterInterceptorClass extends KubeObject<KubeObjectInterface> {
   static kind = 'ClusterInterceptor';
   static apiName = 'clusterinterceptors';
   static isNamespaced = false;
+
+  static get detailsRoute() {
+    return 'clusterinterceptor-details';
+  }
+
+  static get listRoute() {
+    return 'ClusterInterceptors';
+  }
 }

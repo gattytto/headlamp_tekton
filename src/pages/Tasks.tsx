@@ -23,6 +23,7 @@ export function TasksPage() {
                 name={item.metadata.name}
                 kind="Task"
                 namespace={item.metadata.namespace}
+                kubeObject={item}
               />
             ),
           },

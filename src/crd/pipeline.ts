@@ -13,6 +13,14 @@ export class PipelineClass extends KubeObject<Pipeline> {
   static apiName = 'pipelines';
   static isNamespaced = true;
 
+  static get detailsRoute() {
+    return 'pipeline-details';
+  }
+
+  static get listRoute() {
+    return 'Pipelines';
+  }
+
   get spec() {
     return this.jsonData.spec;
   }

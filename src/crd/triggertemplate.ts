@@ -23,6 +23,14 @@ export class TriggerTemplateClass extends KubeObject<TriggerTemplate> {
   static apiName = 'triggertemplates';
   static isNamespaced = true;
 
+  static get detailsRoute() {
+    return 'trigger-template-details';
+  }
+
+  static get listRoute() {
+    return 'Triggers';
+  }
+
   get spec() {
     return this.jsonData.spec;
   }

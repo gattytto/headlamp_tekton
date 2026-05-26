@@ -19,6 +19,14 @@ export class EventListenerClass extends KubeObject<EventListener> {
   static apiName = 'eventlisteners';
   static isNamespaced = true;
 
+  static get detailsRoute() {
+    return 'event-listener-details';
+  }
+
+  static get listRoute() {
+    return 'Triggers';
+  }
+
   get spec() {
     return this.jsonData.spec;
   }

@@ -22,19 +22,20 @@ export function PipelinesPage() {
               <LinkToResource
                 name={item.metadata.name}
                 kind="Pipeline"
-                namespace={item.metadata.namespace} // ✅ FIXED
+                namespace={item.metadata.namespace}
+                kubeObject={item}
               />
             ),
           },
           {
             label: 'Tasks',
             getter: item => {
-              const spec = item.spec ?? item.jsonData?.spec ?? {}; // ✅ FIXED
+              const spec = item.spec ?? item.jsonData?.spec ?? {};
               return Array.isArray(spec?.tasks) ? spec.tasks.length : 0;
             },
           },
           {
-            label: 'Namespace', // ✅ optional but strongly recommended
+            label: 'Namespace',
             getter: item => item.metadata?.namespace ?? '-',
           },
           {

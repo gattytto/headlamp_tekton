@@ -14,6 +14,14 @@ export class TaskRunClass extends KubeObject<TaskRun> {
   static apiName = 'taskruns';
   static isNamespaced = true;
 
+  static get detailsRoute() {
+    return 'taskrun-details';
+  }
+
+  static get listRoute() {
+    return 'TaskRuns';
+  }
+
   get spec() {
     return this.jsonData.spec;
   }

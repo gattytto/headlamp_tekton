@@ -41,7 +41,7 @@ function conditionText(condition: any) {
   return condition.reason || condition.type || condition.status || 'Unknown';
 }
 
-function durationText(start?: string, end?: string) {
+export function durationText(start?: string, end?: string) {
   if (!start) return '-';
   const startTime = Date.parse(start);
   const endTime = end ? Date.parse(end) : Date.now();

@@ -6,9 +6,14 @@ type Props = {
   name: string;
   kind?: string;
   namespace?: string;
+  kubeObject?: any;
 };
 
-export function LinkToResource({ name, kind, namespace }: Props) {
+export function LinkToResource({ name, kind, namespace, kubeObject }: Props) {
+  if (kubeObject) {
+    return <Link kubeObject={kubeObject}>{name}</Link>;
+  }
+
   let routeName: string | null = null;
   let requiresNamespace = true;
 

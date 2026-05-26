@@ -19,6 +19,14 @@ export class ClusterInterceptorClass extends KubeObject<ClusterInterceptor> {
   static apiName = 'clusterinterceptors';
   static isNamespaced = false;
 
+  static get detailsRoute() {
+    return 'clusterinterceptor-details';
+  }
+
+  static get listRoute() {
+    return 'ClusterInterceptors';
+  }
+
   get spec() {
     return this.jsonData.spec;
   }

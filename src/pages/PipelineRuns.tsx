@@ -4,6 +4,7 @@
 import { SectionBox, SimpleTable } from '@kinvolk/headlamp-plugin/lib/components/common';
 import { PipelineRunClass } from '../crd/pipelinerun';
 import { LinkToResource } from '../components/LinkToResource';
+import { durationText } from './detailHelpers';
 
 export function PipelineRunsPage() {
   const [items] = PipelineRunClass.useList();
@@ -23,6 +24,7 @@ export function PipelineRunsPage() {
                 name={item.metadata.name}
                 kind="PipelineRun"
                 namespace={item.metadata.namespace}
+                kubeObject={item}
               />
             ),
           },
@@ -34,6 +36,10 @@ export function PipelineRunsPage() {
             label: 'Status',
             getter: item =>
               item.status?.conditions?.[0]?.reason ?? 'Unknown',
+          },
+          {
+            label: 'Duration',
+            getter: item => durationText(item.status?.startTime, item.status?.completionTime),
           },
           {
             label: 'Age',

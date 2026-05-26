@@ -25,6 +25,7 @@ export function ClusterInterceptorsPage() {
               <LinkToResource
                 name={item.metadata.name}
                 kind="ClusterInterceptor"
+                kubeObject={item}
               />
             ),
           },

@@ -4,6 +4,7 @@
 import { SectionBox, SimpleTable } from '@kinvolk/headlamp-plugin/lib/components/common';
 import { TaskRunClass } from '../crd/taskrun';
 import { LinkToResource } from '../components/LinkToResource';
+import { durationText } from './detailHelpers';
 
 export function TaskRunsPage() {
   const [items] = TaskRunClass.useList();
@@ -23,6 +24,7 @@ export function TaskRunsPage() {
                 name={item.metadata.name}
                 kind="TaskRun"
                 namespace={item.metadata.namespace}
+                kubeObject={item}
               />
             ),
           },
@@ -34,6 +36,10 @@ export function TaskRunsPage() {
             label: 'Status',
             getter: item =>
               item.status?.conditions?.[0]?.reason ?? 'Unknown',
+          },
+          {
+            label: 'Duration',
+            getter: item => durationText(item.status?.startTime, item.status?.completionTime),
           },
           {
             label: 'Age',

@@ -29,6 +29,7 @@ export function TriggersPage() {
                   name={item.metadata.name}
                   kind="TriggerBinding"
                   namespace={item.metadata.namespace}
+                  kubeObject={item}
                 />
               ),
             },
@@ -47,6 +48,7 @@ export function TriggersPage() {
                   name={item.metadata.name}
                   kind="TriggerTemplate"
                   namespace={item.metadata.namespace}
+                  kubeObject={item}
                 />
               ),
             },
@@ -65,6 +67,7 @@ export function TriggersPage() {
                   name={item.metadata.name}
                   kind="EventListener"
                   namespace={item.metadata.namespace}
+                  kubeObject={item}
                 />
               ),
             },

@@ -14,6 +14,14 @@ export class PipelineRunClass extends KubeObject<PipelineRun> {
   static apiName = 'pipelineruns';
   static isNamespaced = true;
 
+  static get detailsRoute() {
+    return 'pipelinerun-details';
+  }
+
+  static get listRoute() {
+    return 'PipelineRuns';
+  }
+
   get spec() {
     return this.jsonData.spec;
   }

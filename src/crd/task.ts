@@ -13,6 +13,14 @@ export class TaskClass extends KubeObject<Task> {
   static apiName = 'tasks';
   static isNamespaced = true;
 
+  static get detailsRoute() {
+    return 'task-details';
+  }
+
+  static get listRoute() {
+    return 'Tasks';
+  }
+
   get spec() {
     return this.jsonData.spec;
   }
