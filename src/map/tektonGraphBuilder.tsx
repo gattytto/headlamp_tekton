@@ -628,6 +628,11 @@ export function buildTektonGraph({
     const pipelineRunId = pipelineRunName
       ? ID.pipelineRun(ns, pipelineRunName)
       : undefined;
+    const pipelineRun = pipelineRunName
+      ? pipelineRuns.find(
+          (item) => nsOf(item) === ns && nameOf(item) === pipelineRunName,
+        )
+      : undefined;
     const pipelineName =
       pipelineNameForTaskRunLabel(run) ||
       (pipelineRunName

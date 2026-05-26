@@ -70,9 +70,16 @@ function useGraphInterop() {
   useEffect(() => {
     const win = window as any;
     win.__headlampGraphInterop = win.__headlampGraphInterop || {};
-    win.__headlampGraphInterop.tekton = true;
+    win.__headlampGraphInterop.counts = win.__headlampGraphInterop.counts || {};
+    win.__headlampGraphInterop.counts.tekton =
+      (win.__headlampGraphInterop.counts.tekton || 0) + 1;
+    win.__headlampGraphInterop.tekton =
+      win.__headlampGraphInterop.counts.tekton > 0;
     console.info("[tekton-map-interop]", "source enabled", {
-      interop: win.__headlampGraphInterop,
+      interop: {
+        ...win.__headlampGraphInterop,
+        counts: { ...win.__headlampGraphInterop.counts },
+      },
     });
     window.dispatchEvent(new CustomEvent("headlamp-graph-interop-change"));
 
@@ -80,9 +87,17 @@ function useGraphInterop() {
     window.addEventListener("headlamp-graph-interop-change", onChange);
 
     return () => {
-      win.__headlampGraphInterop.tekton = false;
+      win.__headlampGraphInterop.counts.tekton = Math.max(
+        0,
+        (win.__headlampGraphInterop.counts.tekton || 0) - 1,
+      );
+      win.__headlampGraphInterop.tekton =
+        win.__headlampGraphInterop.counts.tekton > 0;
       console.info("[tekton-map-interop]", "source disabled", {
-        interop: win.__headlampGraphInterop,
+        interop: {
+          ...win.__headlampGraphInterop,
+          counts: { ...win.__headlampGraphInterop.counts },
+        },
       });
       window.removeEventListener("headlamp-graph-interop-change", onChange);
       window.dispatchEvent(new CustomEvent("headlamp-graph-interop-change"));
@@ -93,13 +108,17 @@ function useGraphInterop() {
     typeof window !== "undefined"
       ? ((window as any).__headlampGraphInterop || {})
       : {};
+  const interopSnapshot = {
+    ...interop,
+    counts: { ...(interop.counts || {}) },
+  };
 
   return {
     version,
     suppressConcolorPolicyRuntimeEdges: Boolean(
       interop.calico || interop.concolor,
     ),
-    interop,
+    interop: interopSnapshot,
   };
 }
 
