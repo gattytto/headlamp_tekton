@@ -25,4 +25,8 @@ export class PipelineRunClass extends KubeObject<PipelineRun> {
   get spec() {
     return this.jsonData.spec;
   }
+
+  get status() {
+    return this.jsonData.status;
+  }
 }

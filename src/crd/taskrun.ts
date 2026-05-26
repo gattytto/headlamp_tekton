@@ -25,4 +25,8 @@ export class TaskRunClass extends KubeObject<TaskRun> {
   get spec() {
     return this.jsonData.spec;
   }
+
+  get status() {
+    return this.jsonData.status;
+  }
 }

@@ -10,10 +10,6 @@ type Props = {
 };
 
 export function LinkToResource({ name, kind, namespace, kubeObject }: Props) {
-  if (kubeObject) {
-    return <Link kubeObject={kubeObject}>{name}</Link>;
-  }
-
   let routeName: string | null = null;
   let requiresNamespace = true;
 
@@ -44,17 +40,18 @@ export function LinkToResource({ name, kind, namespace, kubeObject }: Props) {
       requiresNamespace = false;
       break;
     default:
-      return <span>{name}</span>;
+      return kubeObject ? <Link kubeObject={kubeObject}>{name}</Link> : <span>{name}</span>;
   }
 
   const params: Record<string, string> = { name };
+  const resourceNamespace = namespace || kubeObject?.metadata?.namespace;
 
-  if (requiresNamespace && namespace) {
-    params.namespace = namespace;
+  if (requiresNamespace && resourceNamespace) {
+    params.namespace = resourceNamespace;
   }
 
   return (
-    <Link routeName={routeName} params={params}>
+    <Link routeName={routeName} params={params} activeCluster={kubeObject?.cluster}>
       {name}
     </Link>
   );
