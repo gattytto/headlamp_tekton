@@ -3,17 +3,27 @@
 
 import { registerTektonSidebar } from './sidebar';
 import { registerTektonRoutes } from './routes';
-import { registerMapSource } from '@kinvolk/headlamp-plugin/lib';
+import { registerKindIcon, registerMapSource } from '@kinvolk/headlamp-plugin/lib';
 import { tektonSource } from './map/tektonSource';
 import { Icon, addIcon } from '@iconify/react';
 import customSvgIcon from './favicon.svg?raw';
 
-
 addIcon('custom:tekton', {
   body: customSvgIcon,
-  width: 24,
-  height: 24,
 });
+
+const tektonKindIcon = {
+  icon: <Icon icon="custom:tekton" width="100%" height="100%" />,
+  color: '#d73566',
+};
+
+['Pipeline', 'PipelineRun', 'Task', 'TaskRun'].forEach(kind =>
+  registerKindIcon(kind, tektonKindIcon, 'tekton.dev')
+);
+
+['EventListener', 'TriggerTemplate', 'TriggerBinding', 'ClusterTriggerBinding', 'ClusterInterceptor'].forEach(kind =>
+  registerKindIcon(kind, tektonKindIcon, 'triggers.tekton.dev')
+);
 
 registerTektonSidebar();
 registerTektonRoutes();
