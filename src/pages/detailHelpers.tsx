@@ -25,6 +25,22 @@ function objectName(value: any) {
   return value?.name || value?.ref || value?.resource || '-';
 }
 
+function triggerTemplateRef(trigger: any, defaultNamespace?: string) {
+  const template = trigger?.template || {};
+  const name =
+    template?.ref?.name ||
+    template?.ref ||
+    template?.name ||
+    template?.resource ||
+    '';
+  const namespace =
+    template?.ref?.namespace ||
+    template?.namespace ||
+    defaultNamespace;
+
+  return { namespace, name };
+}
+
 function firstCondition(item: any) {
   return status(item).conditions?.[0];
 }
@@ -183,7 +199,11 @@ export function mainInfoRows(item: any) {
   if (kind === 'EventListener') {
     return [
       { name: 'Triggers', value: s.triggers?.length ?? 0 },
-      { name: 'Service Account', value: s.serviceAccountName || '-' },
+      { name: 'Service Account', value: s.serviceAccountName || s.taskRunTemplate?.serviceAccountName || '-' },
+      {
+        name: 'Namespace Selector',
+        value: s.namespaceSelector?.matchNames?.join(', ') || (s.namespaceSelector ? 'Configured' : '-'),
+      },
       { name: 'Address', value: st.address?.url || '-' },
     ];
   }
@@ -458,13 +478,10 @@ export function EventTriggersSection({ triggers, namespace }: { triggers?: any[]
           { label: 'Name', getter: trigger => trigger.name || '-' },
           {
             label: 'Template',
-            getter: trigger => (
-              <ResourceLink
-                kind="TriggerTemplate"
-                name={trigger.template?.name || trigger.template?.ref}
-                namespace={namespace}
-              />
-            ),
+            getter: trigger => {
+              const ref = triggerTemplateRef(trigger, namespace);
+              return <ResourceLink kind="TriggerTemplate" name={ref.name} namespace={ref.namespace} />;
+            },
           },
           {
             label: 'Bindings',
@@ -565,6 +582,7 @@ export function extraSectionsFor(item: any): any[] {
 
   if (kind === 'EventListener') {
     return [
+      { id: 'conditions', section: <ConditionsSummarySection item={item} /> },
       { id: 'triggers', section: <EventTriggersSection triggers={s.triggers} namespace={ns} /> },
       RawSection({ id: 'raw-status', title: 'Raw Status', data: st }),
       RawSection({ id: 'raw-spec', title: 'Raw Spec', data: s }),

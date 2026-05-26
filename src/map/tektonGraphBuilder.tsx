@@ -286,6 +286,22 @@ function triggerTemplatePipelineRefs(template: any) {
   );
 }
 
+function triggerTemplateRef(trigger: any, defaultNamespace: string) {
+  const template = trigger?.template || {};
+  const name =
+    template?.ref?.name ||
+    template?.ref ||
+    template?.name ||
+    template?.resource ||
+    "";
+  const namespace =
+    template?.ref?.namespace ||
+    template?.namespace ||
+    defaultNamespace;
+
+  return { namespace, name };
+}
+
 function groupByNamespace(items: any[]) {
   const grouped = new Map<string, any[]>();
   items.forEach((item) => {
@@ -704,10 +720,10 @@ export function buildTektonGraph({
         );
       });
 
-      const templateRef = trigger.template?.ref || trigger.template?.name;
+      const templateRef = triggerTemplateRef(trigger, ns);
       link(
         triggerId,
-        templateRef ? ID.triggerTemplate(ns, templateRef) : undefined,
+        templateRef.name ? ID.triggerTemplate(templateRef.namespace, templateRef.name) : undefined,
         "template",
       );
 

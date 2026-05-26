@@ -34,6 +34,10 @@ const tektonKindIcon = {
   registerKindIcon(kind, tektonKindIcon, 'triggers.tekton.dev/v1beta1')
 );
 
+['EventListener', 'TriggerTemplate', 'TriggerBinding', 'ClusterTriggerBinding', 'ClusterInterceptor'].forEach(kind =>
+  registerKindIcon(kind, tektonKindIcon, 'triggers.tekton.dev/v1alpha1')
+);
+
 registerTektonSidebar();
 registerTektonRoutes();
 registerKubeObjectGlance({ id: 'tekton-glance', component: TektonGlance });

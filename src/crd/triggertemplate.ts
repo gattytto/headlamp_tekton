@@ -18,7 +18,7 @@ export interface TriggerTemplate extends KubeObjectInterface {
 }
 
 export class TriggerTemplateClass extends KubeObject<TriggerTemplate> {
-  static apiVersion = ['triggers.tekton.dev/v1beta1'];
+  static apiVersion = ['triggers.tekton.dev/v1beta1', 'triggers.tekton.dev/v1alpha1'];
   static kind = 'TriggerTemplate';
   static apiName = 'triggertemplates';
   static isNamespaced = true;
@@ -33,5 +33,9 @@ export class TriggerTemplateClass extends KubeObject<TriggerTemplate> {
 
   get spec() {
     return this.jsonData.spec;
+  }
+
+  get status() {
+    return this.jsonData.status;
   }
 }

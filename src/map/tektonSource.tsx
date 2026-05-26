@@ -57,6 +57,58 @@ function filterBySelectedNamespaces<T extends any>(
   return items.filter((item) => selected.has(objectNamespace(item) || ""));
 }
 
+function key(namespace?: string, name?: string) {
+  return namespace && name ? `${namespace}/${name}` : "";
+}
+
+function triggerTemplateRef(trigger: any, defaultNamespace?: string) {
+  const template = trigger?.template || {};
+  const name =
+    template?.ref?.name ||
+    template?.ref ||
+    template?.name ||
+    template?.resource ||
+    "";
+  const namespace =
+    template?.ref?.namespace ||
+    template?.namespace ||
+    defaultNamespace;
+
+  return { namespace, name };
+}
+
+function referencedTriggerTemplates(listeners: any[]) {
+  const refs = new Set<string>();
+  listeners.forEach(listener => {
+    const listenerNamespace = objectNamespace(listener);
+    (listener?.spec?.triggers || []).forEach((trigger: any) => {
+      const ref = triggerTemplateRef(trigger, listenerNamespace);
+      const refKey = key(ref.namespace, ref.name);
+      if (refKey) refs.add(refKey);
+    });
+  });
+  return refs;
+}
+
+function includeReferencedTemplates(templates: any[], selectedTemplates: any[], listeners: any[]) {
+  const referenced = referencedTriggerTemplates(listeners);
+  if (!referenced.size) return selectedTemplates;
+
+  const selectedByKey = new Map(selectedTemplates.map(template => [
+    key(objectNamespace(template), template?.metadata?.name),
+    template,
+  ]));
+
+  templates.forEach(template => {
+    const templateKey = key(objectNamespace(template), template?.metadata?.name);
+    if (referenced.has(templateKey) && !selectedByKey.has(templateKey)) {
+      selectedByKey.set(templateKey, template);
+    }
+  });
+
+  return Array.from(selectedByKey.values());
+}
+
 function onlyWhenNoNamespaceSelected<T extends any>(
   items: T[],
   selectedNamespaces: string[],
@@ -157,14 +209,17 @@ export const tektonSource: ResourceSource = {
         concolorProfiles: concolorProfiles ?? [],
       };
 
+      const selectedListeners = filterBySelectedNamespaces(raw.listeners, selectedNamespaces);
+      const selectedTemplates = filterBySelectedNamespaces(raw.templates, selectedNamespaces);
+
       const input = {
         pipelines: filterBySelectedNamespaces(raw.pipelines, selectedNamespaces),
         pipelineRuns: filterBySelectedNamespaces(raw.pipelineRuns, selectedNamespaces),
         tasks: filterBySelectedNamespaces(raw.tasks, selectedNamespaces),
         taskRuns: filterBySelectedNamespaces(raw.taskRuns, selectedNamespaces),
         bindings: filterBySelectedNamespaces(raw.bindings, selectedNamespaces),
-        templates: filterBySelectedNamespaces(raw.templates, selectedNamespaces),
-        listeners: filterBySelectedNamespaces(raw.listeners, selectedNamespaces),
+        templates: includeReferencedTemplates(raw.templates, selectedTemplates, selectedListeners),
+        listeners: selectedListeners,
         // Headlamp re-groups selected-namespace maps after the source returns data.
         // Cluster-scoped nodes disturb that layout, so they are shown only in the full/global map.
         interceptors: onlyWhenNoNamespaceSelected(raw.interceptors, selectedNamespaces),

@@ -9,12 +9,17 @@ import {
 export interface EventListener extends KubeObjectInterface {
   spec: {
     serviceAccountName?: string;
+    taskRunTemplate?: {
+      serviceAccountName?: string;
+    };
+    namespaceSelector?: any;
     triggers?: any[];
   };
+  status?: any;
 }
 
 export class EventListenerClass extends KubeObject<EventListener> {
-  static apiVersion = ['triggers.tekton.dev/v1beta1'];
+  static apiVersion = ['triggers.tekton.dev/v1beta1', 'triggers.tekton.dev/v1alpha1'];
   static kind = 'EventListener';
   static apiName = 'eventlisteners';
   static isNamespaced = true;
@@ -29,5 +34,9 @@ export class EventListenerClass extends KubeObject<EventListener> {
 
   get spec() {
     return this.jsonData.spec;
+  }
+
+  get status() {
+    return this.jsonData.status;
   }
 }
