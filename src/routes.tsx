@@ -9,6 +9,7 @@ import { PipelineRunsPage } from './pages/PipelineRuns';
 import { TasksPage } from './pages/Tasks';
 import { TaskRunsPage } from './pages/TaskRuns';
 import { TriggersPage } from './pages/Triggers';
+import { EventListenersPage } from './pages/EventListeners';
 
 import { PipelineDetailsPage } from './pages/PipelineDetails';
 import { PipelineRunDetailsPage } from './pages/PipelineRunDetails';
@@ -94,6 +95,14 @@ export function registerTektonRoutes() {
     name: 'Triggers',
     exact: true,
     component: TriggersPage,
+  });
+
+  registerRoute({
+    path: '/tekton/eventlisteners',
+    sidebar: 'Tekton',
+    name: 'EventListeners',
+    exact: true,
+    component: EventListenersPage,
   });
 
   registerRoute({

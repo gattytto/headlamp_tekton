@@ -73,6 +73,10 @@ function clusterOf(obj: any) {
   return obj?.cluster || obj?._clusterName;
 }
 
+function kindOf(obj: any, node?: Props['node']) {
+  return obj?.kind || obj?.jsonData?.kind || node?.subtitle || node?.data?.kind;
+}
+
 export function NodeDetails({ node }: Props) {
   if (!node) return <SectionBox title="Details">No node selected</SectionBox>;
 
@@ -94,7 +98,8 @@ export function NodeDetails({ node }: Props) {
   }
 
   const obj = node.kubeObject;
-  const resourceType = resourceTypeFor(obj.kind);
+  const resourceKind = kindOf(obj, node);
+  const resourceType = resourceTypeFor(resourceKind);
 
   if (resourceType && obj.metadata?.name) {
     return (
@@ -113,7 +118,7 @@ export function NodeDetails({ node }: Props) {
   return (
     <>
       <SectionBox title={node.label || node.id || 'Details'}>
-        <NameValueTable rows={[{ name: 'Kind', value: obj.kind || '-' }, ...mainInfoRows(obj)]} />
+        <NameValueTable rows={[{ name: 'Kind', value: resourceKind || '-' }, ...mainInfoRows(obj)]} />
       </SectionBox>
       {extraSectionsFor(obj).map((section: any, index: number) => (
         <Fragment key={section?.id || index}>{section?.section || section}</Fragment>

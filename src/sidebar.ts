@@ -47,6 +47,13 @@ export function registerTektonSidebar() {
   });
 
   registerSidebarEntry({
+    name: 'EventListeners',
+    url: '/tekton/eventlisteners',
+    parent: 'Tekton',
+    label: 'EventListeners',
+  });
+
+  registerSidebarEntry({
     name: 'ClusterInterceptors',
     url: '/tekton/clusterinterceptors',
     parent: 'Tekton',

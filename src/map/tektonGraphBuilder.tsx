@@ -322,11 +322,24 @@ function cloneForHeadlamp(
   kubeObject: any,
   namespace?: string,
   component?: string,
+  kind?: NodeKind,
 ) {
   if (!kubeObject) return kubeObject;
 
   const ns = namespace || meta(kubeObject).namespace;
   const json = kubeObject.jsonData || kubeObject._jsonData || kubeObject;
+  const resolvedKind = json.kind || kind || kubeObject.kind;
+  const apiVersion =
+    json.apiVersion ||
+    (resolvedKind === "ClusterInterceptor"
+      ? "triggers.tekton.dev/v1alpha1"
+      : resolvedKind === "EventListener" ||
+          resolvedKind === "Trigger" ||
+          resolvedKind === "TriggerBinding" ||
+          resolvedKind === "TriggerTemplate" ||
+          resolvedKind === "ClusterTriggerBinding"
+        ? "triggers.tekton.dev/v1beta1"
+        : "tekton.dev/v1");
   const normalizedMetadata = {
     ...meta(kubeObject),
     ...(ns ? { namespace: ns } : {}),
@@ -344,7 +357,7 @@ function cloneForHeadlamp(
     Object.create(Object.getPrototypeOf(kubeObject)),
     kubeObject,
   );
-  clone.jsonData = { ...json, metadata: normalizedMetadata };
+  clone.jsonData = { ...json, apiVersion, kind: resolvedKind, metadata: normalizedMetadata };
   if ("_jsonData" in clone) clone._jsonData = clone.jsonData;
   return clone;
 }
@@ -385,7 +398,7 @@ function addKubeNode(
   obj: any,
   namespace?: string,
 ) {
-  const normalized = cloneForHeadlamp(obj, namespace, kind.toLowerCase());
+  const normalized = cloneForHeadlamp(obj, namespace, kind.toLowerCase(), kind);
   addNode(nodes, {
     id: nodeId,
     label,

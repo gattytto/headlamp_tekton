@@ -4,7 +4,7 @@ import Box from '@mui/material/Box';
 import { StatusLabel } from '@kinvolk/headlamp-plugin/lib/components/common';
 import { mainInfoRows } from '../pages/detailHelpers';
 
-const kind = (obj: any) => obj?.kind || obj?.jsonData?.kind;
+const kind = (obj: any) => obj?.kind || obj?.jsonData?.kind || obj?._class?.()?.kind || obj?.constructor?.kind;
 const tektonKinds = [
   'Pipeline',
   'PipelineRun',
@@ -17,7 +17,15 @@ const tektonKinds = [
 ];
 
 function glanceObject(node: any) {
-  if (tektonKinds.includes(kind(node?.kubeObject))) return node.kubeObject;
+  const direct = [
+    node?.kubeObject,
+    node?.data?.kubeObject,
+    node?.data?.data,
+    node?.data,
+    node,
+  ].find(item => tektonKinds.includes(kind(item)));
+  if (direct) return direct;
+
   return (node?.nodes || []).map(glanceObject).find(Boolean);
 }
 
