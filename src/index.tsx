@@ -21,8 +21,16 @@ const tektonKindIcon = {
   registerKindIcon(kind, tektonKindIcon, 'tekton.dev')
 );
 
+['Pipeline', 'PipelineRun', 'Task', 'TaskRun'].forEach(kind =>
+  registerKindIcon(kind, tektonKindIcon, 'tekton.dev/v1')
+);
+
 ['EventListener', 'TriggerTemplate', 'TriggerBinding', 'ClusterTriggerBinding', 'ClusterInterceptor'].forEach(kind =>
   registerKindIcon(kind, tektonKindIcon, 'triggers.tekton.dev')
+);
+
+['EventListener', 'TriggerTemplate', 'TriggerBinding', 'ClusterTriggerBinding', 'ClusterInterceptor'].forEach(kind =>
+  registerKindIcon(kind, tektonKindIcon, 'triggers.tekton.dev/v1beta1')
 );
 
 registerTektonSidebar();

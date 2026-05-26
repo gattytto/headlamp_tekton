@@ -12,10 +12,12 @@
 //   if one Pipeline calls the same Task twice, the map should still show one Pipeline -> Task line.
 // - namespace filtering is done in tektonSource; this builder only removes dangling edges.
 
+import React from "react";
 import {
   GraphEdge,
   GraphNode,
 } from "@kinvolk/headlamp-plugin/lib/components/resourceMap/graph/graphModel";
+import { Icon } from "@iconify/react";
 import { NodeDetails } from "../components/NodeDetails";
 
 type Args = {
@@ -49,6 +51,8 @@ type NodeKind =
   | "ClusterInterceptor";
 
 type TektonNode = GraphNode & { namespace?: string; type?: string; data?: any };
+
+const tektonIcon = <Icon icon="custom:tekton" />;
 
 // Label keys used to correlate Tekton resources and normalize Headlamp grouping.
 // Keeping them centralized avoids repeated string literals in the resolver logic.
@@ -370,6 +374,7 @@ function addKubeNode(
     id: nodeId,
     label,
     subtitle: kind,
+    icon: tektonIcon,
     namespace,
     kubeObject: normalized,
     data: normalized,
@@ -389,6 +394,7 @@ function addSyntheticNode(
     id: nodeId,
     label,
     subtitle: kind,
+    icon: tektonIcon,
     namespace,
     type: kind === "Task" ? "virtual-task" : kind.toLowerCase(),
     data: syntheticData(data, namespace, label, kind),
@@ -408,6 +414,7 @@ function addClusterNode(
     id: nodeId,
     label,
     subtitle: kind,
+    icon: tektonIcon,
     type: kind.toLowerCase(),
     data: {
       ...(data?.jsonData || data?._jsonData || data || {}),
