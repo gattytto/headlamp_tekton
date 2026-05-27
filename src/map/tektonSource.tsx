@@ -31,10 +31,8 @@ function objectName(obj: any): string | undefined {
   return obj?.metadata?.name || obj?.jsonData?.metadata?.name || obj?._jsonData?.metadata?.name;
 }
 
-function listNamespaces(items: any[]): string[] {
-  return Array.from(
-    new Set(items.map((item) => item?.metadata?.namespace || "(cluster)")),
-  ).sort();
+function objectCluster(obj: any): string {
+  return obj?.cluster || obj?._clusterName || 'cluster';
 }
 
 function selectedNamespacesFromLocation(): string[] {
@@ -61,8 +59,8 @@ function filterBySelectedNamespaces<T extends any>(
   return items.filter((item) => selected.has(objectNamespace(item) || ""));
 }
 
-function key(namespace?: string, name?: string) {
-  return namespace && name ? `${namespace}/${name}` : "";
+function key(cluster?: string, namespace?: string, name?: string) {
+  return cluster && namespace && name ? `${cluster}/${namespace}/${name}` : "";
 }
 
 function triggerTemplateRef(trigger: any, defaultNamespace?: string) {
@@ -87,7 +85,7 @@ function referencedTriggerTemplates(listeners: any[]) {
     const listenerNamespace = objectNamespace(listener);
     (listener?.spec?.triggers || []).forEach((trigger: any) => {
       const ref = triggerTemplateRef(trigger, listenerNamespace);
-      const refKey = key(ref.namespace, ref.name);
+      const refKey = key(objectCluster(listener), ref.namespace, ref.name);
       if (refKey) refs.add(refKey);
     });
   });
@@ -97,13 +95,13 @@ function referencedTriggerTemplates(listeners: any[]) {
 function includeReferencedListeners(listeners: any[], selectedListeners: any[], templates: any[]) {
   const templateKeys = new Set(
     templates
-      .map(template => key(objectNamespace(template), objectName(template)))
+      .map(template => key(objectCluster(template), objectNamespace(template), objectName(template)))
       .filter(Boolean),
   );
   if (!templateKeys.size) return selectedListeners;
 
   const selectedByKey = new Map(selectedListeners.map(listener => [
-    key(objectNamespace(listener), objectName(listener)),
+    key(objectCluster(listener), objectNamespace(listener), objectName(listener)),
     listener,
   ]));
 
@@ -111,9 +109,9 @@ function includeReferencedListeners(listeners: any[], selectedListeners: any[], 
     const listenerNamespace = objectNamespace(listener);
     const referencesSelectedTemplate = (listener?.spec?.triggers || []).some((trigger: any) => {
       const ref = triggerTemplateRef(trigger, listenerNamespace);
-      return templateKeys.has(key(ref.namespace, ref.name));
+      return templateKeys.has(key(objectCluster(listener), ref.namespace, ref.name));
     });
-    const listenerKey = key(listenerNamespace, objectName(listener));
+    const listenerKey = key(objectCluster(listener), listenerNamespace, objectName(listener));
     if (referencesSelectedTemplate && listenerKey && !selectedByKey.has(listenerKey)) {
       selectedByKey.set(listenerKey, listener);
     }
@@ -127,12 +125,12 @@ function includeReferencedTemplates(templates: any[], selectedTemplates: any[], 
   if (!referenced.size) return selectedTemplates;
 
   const selectedByKey = new Map(selectedTemplates.map(template => [
-    key(objectNamespace(template), objectName(template)),
+    key(objectCluster(template), objectNamespace(template), objectName(template)),
     template,
   ]));
 
   templates.forEach(template => {
-    const templateKey = key(objectNamespace(template), objectName(template));
+    const templateKey = key(objectCluster(template), objectNamespace(template), objectName(template));
     if (referenced.has(templateKey) && !selectedByKey.has(templateKey)) {
       selectedByKey.set(templateKey, template);
     }
@@ -147,7 +145,7 @@ function referencedClusterInterceptors(listeners: any[]) {
     (listener?.spec?.triggers || []).forEach((trigger: any) => {
       (trigger?.interceptors || []).forEach((interceptor: any) => {
         if (interceptor?.ref?.kind === 'ClusterInterceptor' && interceptor?.ref?.name) {
-          refs.add(interceptor.ref.name);
+          refs.add(`${objectCluster(listener)}/${interceptor.ref.name}`);
         }
       });
     });
@@ -158,15 +156,11 @@ function referencedClusterInterceptors(listeners: any[]) {
 function includeReferencedClusterInterceptors(interceptors: any[], listeners: any[]) {
   const referenced = referencedClusterInterceptors(listeners);
   if (!referenced.size) return [];
-  return interceptors.filter(interceptor => referenced.has(objectName(interceptor) || ''));
+  return interceptors.filter(interceptor =>
+    referenced.has(`${objectCluster(interceptor)}/${objectName(interceptor) || ''}`)
+  );
 }
 
-function onlyWhenNoNamespaceSelected<T extends any>(
-  items: T[],
-  selectedNamespaces: string[],
-): T[] {
-  return selectedNamespaces.length === 0 ? items : [];
-}
 function useGraphInterop() {
   const [version, setVersion] = useState(0);
 
@@ -283,11 +277,18 @@ export const tektonSource: ResourceSource = {
         concolorProfiles: filterBySelectedNamespaces(raw.concolorProfiles, selectedNamespaces),
         selectedNamespaces,
         selectedNamespace: selectedNamespaces[0],
+        includeSteps: true,
         suppressConcolorPolicyRuntimeEdges:
           interop.suppressConcolorPolicyRuntimeEdges,
       };
 
-      const { graphNodes, edges } = buildTektonGraph(input);
+      let { graphNodes, edges } = buildTektonGraph(input);
+      if (selectedNamespaces.length === 0 && graphNodes.length > 50) {
+        ({ graphNodes, edges } = buildTektonGraph({
+          ...input,
+          includeSteps: false,
+        }));
+      }
 
       return {
         nodes: graphNodes as any,

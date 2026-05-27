@@ -31,6 +31,7 @@ type Args = {
   interceptors?: any[];
   concolorProfiles?: any[];
   suppressConcolorPolicyRuntimeEdges?: boolean;
+  includeSteps?: boolean;
 
   // Accepted for compatibility with existing callers. Filtering happens in tektonSource.
   selectedNamespace?: string;
@@ -77,7 +78,7 @@ const annotations = (o: any): Record<string, string> =>
 const nameOf = (o: any) => meta(o).name || "";
 const nsOf = (o: any) => meta(o).namespace || "default";
 const clusterOf = (o: any) => o?.cluster || o?._clusterName || "cluster";
-const key = (ns: string, name: string) => `${ns}/${name}`;
+const key = (cluster: string, ns: string, name: string) => `${cluster}/${ns}/${name}`;
 const first = (...values: Array<string | undefined>) => values.find(Boolean);
 const owner = (o: any, kind: string) =>
   (meta(o).ownerReferences || []).find((ref: any) => ref?.kind === kind)?.name;
@@ -89,24 +90,24 @@ const id = (kind: string, ...parts: Array<string | number | undefined>) =>
 // IDs include kind + namespace + name so edges stay valid across refreshes;
 // cluster-scoped resources intentionally omit namespace.
 const ID = {
-  pipeline: (ns: string, name: string) => id("pipeline", ns, name),
-  pipelineRun: (ns: string, name: string) => id("pipelinerun", ns, name),
-  task: (ns: string, name: string) => id("task", ns, name),
-  taskRun: (ns: string, name: string) => id("taskrun", ns, name),
-  virtualTask: (ns: string, pipeline: string, task: string) =>
-    id("virtualtask", ns, pipeline, task),
-  eventListener: (ns: string, name: string) => id("eventlistener", ns, name),
-  trigger: (ns: string, listener: string, trigger: string, index: number) =>
-    id("trigger", ns, listener, trigger, index),
-  triggerTemplate: (ns: string, name: string) =>
-    id("triggertemplate", ns, name),
-  triggerBinding: (ns: string, name: string) => id("triggerbinding", ns, name),
+  pipeline: (cluster: string, ns: string, name: string) => id("pipeline", cluster, ns, name),
+  pipelineRun: (cluster: string, ns: string, name: string) => id("pipelinerun", cluster, ns, name),
+  task: (cluster: string, ns: string, name: string) => id("task", cluster, ns, name),
+  taskRun: (cluster: string, ns: string, name: string) => id("taskrun", cluster, ns, name),
+  virtualTask: (cluster: string, ns: string, pipeline: string, task: string) =>
+    id("virtualtask", cluster, ns, pipeline, task),
+  eventListener: (cluster: string, ns: string, name: string) => id("eventlistener", cluster, ns, name),
+  trigger: (cluster: string, ns: string, listener: string, trigger: string, index: number) =>
+    id("trigger", cluster, ns, listener, trigger, index),
+  triggerTemplate: (cluster: string, ns: string, name: string) =>
+    id("triggertemplate", cluster, ns, name),
+  triggerBinding: (cluster: string, ns: string, name: string) => id("triggerbinding", cluster, ns, name),
   clusterTriggerBinding: (cluster: string, name: string) =>
     id("clustertriggerbinding", cluster, name),
   clusterInterceptor: (cluster: string, name: string) =>
     id("clusterinterceptor", cluster, name),
-  step: (ns: string, task: string, step: string, index: number) =>
-    id("step", ns, task, step, index),
+  step: (cluster: string, ns: string, task: string, step: string, index: number) =>
+    id("step", cluster, ns, task, step, index),
 };
 
 const pipelineEntries = (pipeline: any) => [
@@ -231,14 +232,15 @@ function matchesPipelineEntry(
 }
 
 function targetForPipelineEntry(
+  cluster: string,
   namespace: string,
   pipelineName: string,
   entry: any,
 ) {
   if (isResolverEntry(entry))
-    return ID.virtualTask(namespace, pipelineName, entryName(entry));
+    return ID.virtualTask(cluster, namespace, pipelineName, entryName(entry));
   if (isConcreteTaskEntry(entry))
-    return ID.task(namespace, taskRef(entry).name);
+    return ID.task(cluster, namespace, taskRef(entry).name);
   return undefined;
 }
 
@@ -247,9 +249,10 @@ function targetForTaskRun(
   pipelineName: string | undefined,
   pipelinesByKey: Map<string, any>,
 ) {
+  const cluster = clusterOf(taskRun);
   const namespace = nsOf(taskRun);
   const pipeline = pipelineName
-    ? pipelinesByKey.get(key(namespace, pipelineName))
+    ? pipelinesByKey.get(key(cluster, namespace, pipelineName))
     : undefined;
   const pipelineRunName = pipelineRunNameForTaskRun(taskRun);
   const entry = pipelineEntries(pipeline).find((e) =>
@@ -257,16 +260,17 @@ function targetForTaskRun(
   );
   const pipelineTarget =
     pipelineName && entry
-      ? targetForPipelineEntry(namespace, pipelineName, entry)
+      ? targetForPipelineEntry(cluster, namespace, pipelineName, entry)
       : undefined;
 
   if (pipelineTarget) return pipelineTarget;
 
   // Fallbacks keep standalone TaskRuns and older Tekton labels useful.
   const explicitTask = taskNameForTaskRun(taskRun);
-  if (explicitTask) return ID.task(namespace, explicitTask);
+  if (explicitTask) return ID.task(cluster, namespace, explicitTask);
   if (pipelineName && taskRun?.spec?.taskRef?.resolver) {
     return ID.virtualTask(
+      cluster,
       namespace,
       pipelineName,
       pipelineTaskNameForTaskRun(taskRun) || nameOf(taskRun),
@@ -308,16 +312,16 @@ function triggerTemplateRef(trigger: any, defaultNamespace: string) {
 function groupByNamespace(items: any[]) {
   const grouped = new Map<string, any[]>();
   items.forEach((item) => {
-    const ns = nsOf(item);
-    if (!grouped.has(ns)) grouped.set(ns, []);
-    grouped.get(ns)!.push(item);
+    const groupKey = `${clusterOf(item)}/${nsOf(item)}`;
+    if (!grouped.has(groupKey)) grouped.set(groupKey, []);
+    grouped.get(groupKey)!.push(item);
   });
   return grouped;
 }
 
 function indexByNamespaceName(items: any[]) {
   const indexed = new Map<string, any>();
-  items.forEach((item) => indexed.set(key(nsOf(item), nameOf(item)), item));
+  items.forEach((item) => indexed.set(key(clusterOf(item), nsOf(item), nameOf(item)), item));
   return indexed;
 }
 
@@ -582,6 +586,7 @@ export function buildTektonGraph({
   interceptors = [],
   concolorProfiles = [],
   suppressConcolorPolicyRuntimeEdges = false,
+  includeSteps = true,
 }: Args) {
   const nodes = new Map<string, TektonNode>();
   const edges = new Map<string, GraphEdge>();
@@ -594,17 +599,19 @@ export function buildTektonGraph({
   const pipelineByRunKey = new Map<string, string | undefined>();
 
   pipelineRuns.forEach((run) => {
+    const cluster = clusterOf(run);
     const ns = nsOf(run);
     pipelineByRunKey.set(
-      key(ns, nameOf(run)),
-      pipelineNameForRun(run, pipelinesByNamespace.get(ns) || []),
+      key(cluster, ns, nameOf(run)),
+      pipelineNameForRun(run, pipelinesByNamespace.get(`${cluster}/${ns}`) || []),
     );
   });
 
   pipelines.forEach((pipeline) => {
+    const cluster = clusterOf(pipeline);
     const ns = nsOf(pipeline);
     const pipelineName = nameOf(pipeline);
-    const pipelineId = ID.pipeline(ns, pipelineName);
+    const pipelineId = ID.pipeline(cluster, ns, pipelineName);
     addKubeNode(nodes, pipelineId, pipelineName, "Pipeline", pipeline, ns);
 
     pipelineEntries(pipeline).forEach((entry) => {
@@ -612,7 +619,7 @@ export function buildTektonGraph({
       const target = targetForPipelineEntry(ns, pipelineName, entry);
 
       if (isResolverEntry(entry)) {
-        const virtualId = ID.virtualTask(ns, pipelineName, taskName);
+        const virtualId = ID.virtualTask(cluster, ns, pipelineName, taskName);
         addSyntheticNode(nodes, virtualId, taskName, "Task", ns, {
           ...entry,
           metadata: {
@@ -630,25 +637,29 @@ export function buildTektonGraph({
   });
 
   tasks.forEach((task) => {
+    const cluster = clusterOf(task);
     const ns = nsOf(task);
     const taskName = nameOf(task);
-    const taskId = ID.task(ns, taskName);
+    const taskId = ID.task(cluster, ns, taskName);
     addKubeNode(nodes, taskId, taskName, "Task", task, ns);
+
+    if (!includeSteps) return;
 
     (task.spec?.steps || []).forEach((step: any, index: number) => {
       const stepName = step?.name || `step-${index}`;
-      const stepId = ID.step(ns, taskName, stepName, index);
+      const stepId = ID.step(cluster, ns, taskName, stepName, index);
       addSyntheticNode(nodes, stepId, stepName, "Step", ns, step);
       link(taskId, stepId, "step");
     });
   });
 
   pipelineRuns.forEach((run) => {
+    const cluster = clusterOf(run);
     const ns = nsOf(run);
     const runName = nameOf(run);
     addKubeNode(
       nodes,
-      ID.pipelineRun(ns, runName),
+      ID.pipelineRun(cluster, ns, runName),
       runName,
       "PipelineRun",
       run,
@@ -657,24 +668,28 @@ export function buildTektonGraph({
   });
 
   taskRuns.forEach((run) => {
+    const cluster = clusterOf(run);
     const ns = nsOf(run);
     const runName = nameOf(run);
-    const taskRunId = ID.taskRun(ns, runName);
+    const taskRunId = ID.taskRun(cluster, ns, runName);
     addKubeNode(nodes, taskRunId, runName, "TaskRun", run, ns);
 
     const pipelineRunName = pipelineRunNameForTaskRun(run);
     const pipelineRunId = pipelineRunName
-      ? ID.pipelineRun(ns, pipelineRunName)
+      ? ID.pipelineRun(cluster, ns, pipelineRunName)
       : undefined;
     const pipelineRun = pipelineRunName
       ? pipelineRuns.find(
-          (item) => nsOf(item) === ns && nameOf(item) === pipelineRunName,
+          (item) =>
+            clusterOf(item) === cluster &&
+            nsOf(item) === ns &&
+            nameOf(item) === pipelineRunName,
         )
       : undefined;
     const pipelineName =
       pipelineNameForTaskRunLabel(run) ||
       (pipelineRunName
-        ? pipelineByRunKey.get(key(ns, pipelineRunName))
+        ? pipelineByRunKey.get(key(cluster, ns, pipelineRunName))
         : undefined);
 
     link(
@@ -695,9 +710,10 @@ export function buildTektonGraph({
   });
 
   templates.forEach((template) => {
+    const cluster = clusterOf(template);
     const ns = nsOf(template);
     const templateName = nameOf(template);
-    const templateId = ID.triggerTemplate(ns, templateName);
+    const templateId = ID.triggerTemplate(cluster, ns, templateName);
     addKubeNode(
       nodes,
       templateId,
@@ -708,7 +724,7 @@ export function buildTektonGraph({
     );
 
     triggerTemplatePipelineRefs(template).forEach((pipelineName) =>
-      link(templateId, ID.pipeline(ns, pipelineName), "pipelineTemplate"),
+      link(templateId, ID.pipeline(cluster, ns, pipelineName), "pipelineTemplate"),
     );
   });
 
@@ -719,7 +735,7 @@ export function buildTektonGraph({
     if (ns)
       addKubeNode(
         nodes,
-        ID.triggerBinding(ns, bindingName),
+        ID.triggerBinding(bindingCluster, ns, bindingName),
         bindingName,
         "TriggerBinding",
         binding,
@@ -750,12 +766,12 @@ export function buildTektonGraph({
     const ns = nsOf(listener);
     const listenerCluster = clusterOf(listener);
     const listenerName = nameOf(listener);
-    const listenerId = ID.eventListener(ns, listenerName);
+    const listenerId = ID.eventListener(listenerCluster, ns, listenerName);
     addKubeNode(nodes, listenerId, listenerName, "EventListener", listener, ns);
 
     (listener.spec?.triggers || []).forEach((trigger: any, index: number) => {
       const triggerName = trigger?.name || `trigger-${index}`;
-      const triggerId = ID.trigger(ns, listenerName, triggerName, index);
+      const triggerId = ID.trigger(listenerCluster, ns, listenerName, triggerName, index);
       addSyntheticNode(nodes, triggerId, triggerName, "Trigger", ns, trigger);
       link(listenerId, triggerId, "trigger");
 
@@ -768,7 +784,7 @@ export function buildTektonGraph({
           triggerId,
           isCluster
             ? ID.clusterTriggerBinding(listenerCluster, ref)
-            : ID.triggerBinding(ns, ref),
+            : ID.triggerBinding(listenerCluster, ns, ref),
           `binding-${bindingIndex}`,
         );
       });
@@ -776,7 +792,7 @@ export function buildTektonGraph({
       const templateRef = triggerTemplateRef(trigger, ns);
       link(
         triggerId,
-        templateRef.name ? ID.triggerTemplate(templateRef.namespace, templateRef.name) : undefined,
+        templateRef.name ? ID.triggerTemplate(listenerCluster, templateRef.namespace, templateRef.name) : undefined,
         "template",
       );
 
