@@ -200,7 +200,7 @@ function useGraphInterop() {
   return {
     version,
     suppressConcolorPolicyRuntimeEdges: Boolean(
-      interop.calico,
+      interop.calicoPolicyRuntime,
     ),
     interop: interopSnapshot,
   };
