@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: EPL-2.0
 
-import { ResourceListView, SectionBox, StatusLabel } from '@kinvolk/headlamp-plugin/lib/components/common';
+import { ResourceListView, StatusLabel } from '@kinvolk/headlamp-plugin/lib/components/common';
 import { EventListenerClass } from '../crd/eventlistener';
 import { LinkToResource } from '../components/LinkToResource';
 
@@ -17,16 +17,10 @@ function eventListenerStatus(item: any) {
 }
 
 export function EventListenersPage() {
-  const [items] = EventListenerClass.useList();
-
-  if (!items) {
-    return <SectionBox title="EventListeners">Loading...</SectionBox>;
-  }
-
   return (
     <ResourceListView
       title="EventListeners"
-      data={items}
+      resourceClass={EventListenerClass}
       id="tekton-eventlisteners"
       columns={[
         {

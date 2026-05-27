@@ -8,14 +8,10 @@ import { TektonRerunMenuAction } from '../components/RunActions';
 import { durationText } from './detailHelpers';
 
 export function PipelineRunsPage() {
-  const [items] = PipelineRunClass.useList();
-
-  if (!items) return <div style={{ padding: 16 }}>Loading...</div>;
-
   return (
     <ResourceListView
       title="PipelineRuns"
-      data={items}
+      resourceClass={PipelineRunClass}
       id="tekton-pipelineruns"
       actions={[
         {

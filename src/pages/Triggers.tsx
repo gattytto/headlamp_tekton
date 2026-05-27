@@ -8,19 +8,11 @@ import { EventListenerClass } from '../crd/eventlistener';
 import { LinkToResource } from '../components/LinkToResource';
 
 export function TriggersPage() {
-  const [bindings] = TriggerBindingClass.useList();
-  const [templates] = TriggerTemplateClass.useList();
-  const [listeners] = EventListenerClass.useList();
-
-  if (!bindings || !templates || !listeners) {
-    return <div style={{ padding: 16 }}>Loading...</div>;
-  }
-
   return (
     <>
       <ResourceListView
         title="TriggerBindings"
-        data={bindings}
+        resourceClass={TriggerBindingClass}
         id="tekton-triggerbindings"
         columns={[
           {
@@ -44,7 +36,7 @@ export function TriggersPage() {
 
       <ResourceListView
         title="TriggerTemplates"
-        data={templates}
+        resourceClass={TriggerTemplateClass}
         id="tekton-triggertemplates"
         columns={[
           {
@@ -68,7 +60,7 @@ export function TriggersPage() {
 
       <ResourceListView
         title="EventListeners"
-        data={listeners}
+        resourceClass={EventListenerClass}
         id="tekton-triggers-eventlisteners"
         columns={[
           {

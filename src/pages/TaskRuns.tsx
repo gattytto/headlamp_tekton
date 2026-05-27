@@ -8,14 +8,10 @@ import { TektonRerunMenuAction } from '../components/RunActions';
 import { durationText } from './detailHelpers';
 
 export function TaskRunsPage() {
-  const [items] = TaskRunClass.useList();
-
-  if (!items) return <div style={{ padding: 16 }}>Loading...</div>;
-
   return (
     <ResourceListView
       title="TaskRuns"
-      data={items}
+      resourceClass={TaskRunClass}
       id="tekton-taskruns"
       actions={[
         {

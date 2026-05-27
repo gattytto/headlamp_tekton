@@ -6,14 +6,10 @@ import { TaskClass } from '../crd/task';
 import { LinkToResource } from '../components/LinkToResource';
 
 export function TasksPage() {
-  const [items] = TaskClass.useList();
-
-  if (!items) return <div style={{ padding: 16 }}>Loading...</div>;
-
   return (
     <ResourceListView
       title="Tasks"
-      data={items}
+      resourceClass={TaskClass}
       id="tekton-tasks"
       columns={[
         {

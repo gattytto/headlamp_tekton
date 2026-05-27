@@ -6,14 +6,10 @@ import { ClusterInterceptorClass } from '../crd/clusterinterceptor';
 import { LinkToResource } from '../components/LinkToResource';
 
 export function ClusterInterceptorsPage() {
-  const [items] = ClusterInterceptorClass.useList();
-
-  if (!items) return <div style={{ padding: 16 }}>Loading...</div>;
-
   return (
     <ResourceListView
       title="ClusterInterceptors"
-      data={items}
+      resourceClass={ClusterInterceptorClass}
       id="tekton-clusterinterceptors"
       columns={[
         {

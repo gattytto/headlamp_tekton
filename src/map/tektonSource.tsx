@@ -6,7 +6,6 @@
 // One or more namespaces selected: return resources scoped to those namespaces, plus
 // cluster-scoped interceptors referenced by selected EventListeners.
 
-import React from "react";
 import { Icon } from "@iconify/react";
 import { ResourceSource } from "@kinvolk/headlamp-plugin/lib/components/resourceMap";
 import { useEffect, useMemo, useState } from "react";
@@ -207,13 +206,29 @@ function useGraphInterop() {
   };
 }
 
-export const tektonSource: ResourceSource = {
-  id: "tekton",
-  label: "Tekton",
-  icon: <Icon icon="custom:tekton" />,
-  detailsComponent: NodeDetails,
+function graphNodeKind(node: any) {
+  return node?.kubeObject?.kind || node?.subtitle || node?.data?.kind || node?.type;
+}
 
-  useData() {
+function filterGraphByKinds(graph: { nodes: any[]; edges: any[] }, kinds?: string[]) {
+  if (!kinds) return graph;
+
+  const selectedKinds = new Set(kinds);
+  const nodes = graph.nodes.filter(node => selectedKinds.has(graphNodeKind(node)));
+  const nodeIds = new Set(nodes.map(node => node.id));
+  const edges = graph.edges.filter(edge => nodeIds.has(edge.source) || nodeIds.has(edge.target));
+
+  return { nodes, edges };
+}
+
+function makeTektonSource(id: string, label: string, kinds: string[]): ResourceSource {
+  return {
+    id,
+    label,
+    icon: <Icon icon="custom:tekton" />,
+    detailsComponent: NodeDetails,
+
+    useData() {
     const locationHref = typeof window !== "undefined" ? window.location.href : "";
     const selectedNamespaces = selectedNamespacesFromLocation();
     const interop = useGraphInterop();
@@ -293,10 +308,10 @@ export const tektonSource: ResourceSource = {
         }));
       }
 
-      return {
+      return filterGraphByKinds({
         nodes: graphNodes as any,
         edges,
-      };
+      }, kinds);
     }, [
       pipelines,
       pipelineRuns,
@@ -310,5 +325,24 @@ export const tektonSource: ResourceSource = {
       locationHref,
       interop.version,
     ]);
-  },
+    },
+  } as ResourceSource;
+}
+
+export const tektonSource: ResourceSource = {
+  id: "tekton",
+  label: "Tekton",
+  icon: <Icon icon="custom:tekton" />,
+  sources: [
+    makeTektonSource("tekton-eventlisteners", "EventListeners", ["EventListener"]),
+    makeTektonSource("tekton-triggers", "Triggers", ["trigger"]),
+    makeTektonSource("tekton-triggerbindings", "TriggerBindings", ["TriggerBinding"]),
+    makeTektonSource("tekton-triggertemplates", "TriggerTemplates", ["TriggerTemplate"]),
+    makeTektonSource("tekton-clusterinterceptors", "ClusterInterceptors", ["ClusterInterceptor"]),
+    makeTektonSource("tekton-pipelines", "Pipelines", ["Pipeline"]),
+    makeTektonSource("tekton-tasks", "Tasks", ["Task"]),
+    makeTektonSource("tekton-steps", "Steps", ["step"]),
+    makeTektonSource("tekton-taskruns", "TaskRuns", ["TaskRun"]),
+    makeTektonSource("tekton-pipelineruns", "PipelineRuns", ["PipelineRun"]),
+  ],
 };

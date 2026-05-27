@@ -6,14 +6,10 @@ import { PipelineClass } from '../crd/pipeline';
 import { LinkToResource } from '../components/LinkToResource';
 
 export function PipelinesPage() {
-  const [items] = PipelineClass.useList();
-
-  if (!items) return <div style={{ padding: 16 }}>Loading...</div>;
-
   return (
     <ResourceListView
       title="Pipelines"
-      data={items}
+      resourceClass={PipelineClass}
       id="tekton-pipelines"
       columns={[
         {
