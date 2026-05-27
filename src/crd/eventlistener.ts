@@ -29,7 +29,7 @@ export class EventListenerClass extends KubeObject<EventListener> {
   }
 
   static get listRoute() {
-    return 'Triggers';
+    return 'EventListeners';
   }
 
   get spec() {

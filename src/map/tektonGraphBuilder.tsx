@@ -70,7 +70,7 @@ const L = {
   concolorPolicyPrefix: "concolor.projectcalico.org/policy.",
 } as const;
 
-const meta = (o: any) => o?.metadata || {};
+const meta = (o: any) => o?.metadata || o?.jsonData?.metadata || o?._jsonData?.metadata || {};
 const labels = (o: any): Record<string, string> => meta(o).labels || {};
 const annotations = (o: any): Record<string, string> =>
   meta(o).annotations || {};
@@ -318,7 +318,7 @@ function indexByNamespaceName(items: any[]) {
   return indexed;
 }
 
-function cloneForHeadlamp(
+function normalizeForHeadlamp(
   kubeObject: any,
   namespace?: string,
   component?: string,
@@ -328,6 +328,7 @@ function cloneForHeadlamp(
 
   const ns = namespace || meta(kubeObject).namespace;
   const json = kubeObject.jsonData || kubeObject._jsonData || kubeObject;
+  const jsonMetadata = json?.metadata || {};
   const resolvedKind = json.kind || kind || kubeObject.kind;
   const apiVersion =
     json.apiVersion ||
@@ -341,9 +342,11 @@ function cloneForHeadlamp(
         ? "triggers.tekton.dev/v1beta1"
         : "tekton.dev/v1");
   const normalizedMetadata = {
+    ...jsonMetadata,
     ...meta(kubeObject),
     ...(ns ? { namespace: ns } : {}),
     labels: {
+      ...(jsonMetadata.labels || {}),
       ...labels(kubeObject),
       ...(ns ? { [L.instance]: ns } : {}),
       [L.partOf]: "tekton",
@@ -351,15 +354,9 @@ function cloneForHeadlamp(
     },
   };
 
-  // Keep the KubeObject prototype; Headlamp calls KubeObject methods while rendering nodes.
-  // Do not write to .metadata because Headlamp exposes it as a getter-only property.
-  const clone = Object.assign(
-    Object.create(Object.getPrototypeOf(kubeObject)),
-    kubeObject,
-  );
-  clone.jsonData = { ...json, apiVersion, kind: resolvedKind, metadata: normalizedMetadata };
-  if ("_jsonData" in clone) clone._jsonData = clone.jsonData;
-  return clone;
+  kubeObject.jsonData = { ...json, apiVersion, kind: resolvedKind, metadata: normalizedMetadata };
+  if ("_jsonData" in kubeObject) kubeObject._jsonData = kubeObject.jsonData;
+  return kubeObject;
 }
 
 function syntheticData(
@@ -398,7 +395,7 @@ function addKubeNode(
   obj: any,
   namespace?: string,
 ) {
-  const normalized = cloneForHeadlamp(obj, namespace, kind.toLowerCase(), kind);
+  const normalized = normalizeForHeadlamp(obj, namespace, kind.toLowerCase(), kind);
   addNode(nodes, {
     id: nodeId,
     label,

@@ -24,7 +24,11 @@ import { ClusterInterceptorClass } from "../crd/clusterinterceptor";
 import { ConcolorPolicyProfileClass } from "../crd/concolor";
 
 function objectNamespace(obj: any): string | undefined {
-  return obj?.metadata?.namespace;
+  return obj?.metadata?.namespace || obj?.jsonData?.metadata?.namespace || obj?._jsonData?.metadata?.namespace;
+}
+
+function objectName(obj: any): string | undefined {
+  return obj?.metadata?.name || obj?.jsonData?.metadata?.name || obj?._jsonData?.metadata?.name;
 }
 
 function listNamespaces(items: any[]): string[] {
@@ -90,17 +94,45 @@ function referencedTriggerTemplates(listeners: any[]) {
   return refs;
 }
 
+function includeReferencedListeners(listeners: any[], selectedListeners: any[], templates: any[]) {
+  const templateKeys = new Set(
+    templates
+      .map(template => key(objectNamespace(template), objectName(template)))
+      .filter(Boolean),
+  );
+  if (!templateKeys.size) return selectedListeners;
+
+  const selectedByKey = new Map(selectedListeners.map(listener => [
+    key(objectNamespace(listener), objectName(listener)),
+    listener,
+  ]));
+
+  listeners.forEach(listener => {
+    const listenerNamespace = objectNamespace(listener);
+    const referencesSelectedTemplate = (listener?.spec?.triggers || []).some((trigger: any) => {
+      const ref = triggerTemplateRef(trigger, listenerNamespace);
+      return templateKeys.has(key(ref.namespace, ref.name));
+    });
+    const listenerKey = key(listenerNamespace, objectName(listener));
+    if (referencesSelectedTemplate && listenerKey && !selectedByKey.has(listenerKey)) {
+      selectedByKey.set(listenerKey, listener);
+    }
+  });
+
+  return Array.from(selectedByKey.values());
+}
+
 function includeReferencedTemplates(templates: any[], selectedTemplates: any[], listeners: any[]) {
   const referenced = referencedTriggerTemplates(listeners);
   if (!referenced.size) return selectedTemplates;
 
   const selectedByKey = new Map(selectedTemplates.map(template => [
-    key(objectNamespace(template), template?.metadata?.name),
+    key(objectNamespace(template), objectName(template)),
     template,
   ]));
 
   templates.forEach(template => {
-    const templateKey = key(objectNamespace(template), template?.metadata?.name);
+    const templateKey = key(objectNamespace(template), objectName(template));
     if (referenced.has(templateKey) && !selectedByKey.has(templateKey)) {
       selectedByKey.set(templateKey, template);
     }
@@ -209,8 +241,12 @@ export const tektonSource: ResourceSource = {
         concolorProfiles: concolorProfiles ?? [],
       };
 
-      const selectedListeners = filterBySelectedNamespaces(raw.listeners, selectedNamespaces);
       const selectedTemplates = filterBySelectedNamespaces(raw.templates, selectedNamespaces);
+      const selectedListeners = includeReferencedListeners(
+        raw.listeners,
+        filterBySelectedNamespaces(raw.listeners, selectedNamespaces),
+        selectedTemplates,
+      );
 
       const input = {
         pipelines: filterBySelectedNamespaces(raw.pipelines, selectedNamespaces),

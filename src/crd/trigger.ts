@@ -14,22 +14,7 @@ export class TriggerBindingClass extends KubeObject<KubeObjectInterface> {
   }
 
   static get listRoute() {
-    return 'Triggers';
-  }
-}
-
-export class EventListenerClass extends KubeObject<KubeObjectInterface> {
-  static apiVersion = ['triggers.tekton.dev/v1beta1', 'triggers.tekton.dev/v1alpha1'];
-  static kind = 'EventListener';
-  static apiName = 'eventlisteners';
-  static isNamespaced = true;
-
-  static get detailsRoute() {
-    return 'event-listener-details';
-  }
-
-  static get listRoute() {
-    return 'Triggers';
+    return 'EventListeners';
   }
 }
 
