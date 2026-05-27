@@ -76,6 +76,7 @@ const annotations = (o: any): Record<string, string> =>
   meta(o).annotations || {};
 const nameOf = (o: any) => meta(o).name || "";
 const nsOf = (o: any) => meta(o).namespace || "default";
+const clusterOf = (o: any) => o?.cluster || o?._clusterName || "cluster";
 const key = (ns: string, name: string) => `${ns}/${name}`;
 const first = (...values: Array<string | undefined>) => values.find(Boolean);
 const owner = (o: any, kind: string) =>
@@ -100,8 +101,10 @@ const ID = {
   triggerTemplate: (ns: string, name: string) =>
     id("triggertemplate", ns, name),
   triggerBinding: (ns: string, name: string) => id("triggerbinding", ns, name),
-  clusterTriggerBinding: (name: string) => id("clustertriggerbinding", name),
-  clusterInterceptor: (name: string) => id("clusterinterceptor", name),
+  clusterTriggerBinding: (cluster: string, name: string) =>
+    id("clustertriggerbinding", cluster, name),
+  clusterInterceptor: (cluster: string, name: string) =>
+    id("clusterinterceptor", cluster, name),
   step: (ns: string, task: string, step: string, index: number) =>
     id("step", ns, task, step, index),
 };
@@ -435,7 +438,41 @@ function addClusterNode(
   kind: "ClusterInterceptor" | "ClusterTriggerBinding",
   data: any,
 ) {
-  // Cluster-scoped nodes stay synthetic so tektonSource can decide when to include them.
+  const normalized = normalizeForHeadlamp(data, undefined, kind.toLowerCase(), kind);
+  const normalizedName = normalized?.metadata?.name || normalized?.jsonData?.metadata?.name || label;
+  const normalizedData = {
+    ...(normalized?.jsonData || normalized?._jsonData || normalized || {}),
+    kind,
+    metadata: {
+      ...(normalized?.jsonData?.metadata || normalized?._jsonData?.metadata || normalized?.metadata || {}),
+      name: normalizedName,
+      labels: {
+        ...(normalized?.jsonData?.metadata?.labels ||
+          normalized?._jsonData?.metadata?.labels ||
+          normalized?.metadata?.labels ||
+          {}),
+        [L.partOf]: "tekton",
+        [L.component]: kind.toLowerCase(),
+        [L.instance]: clusterOf(data),
+      },
+    },
+  };
+
+  if (normalized) {
+    normalized.jsonData = normalizedData;
+    if ("_jsonData" in normalized) normalized._jsonData = normalizedData;
+    addNode(nodes, {
+      id: nodeId,
+      label,
+      subtitle: kind,
+      icon: tektonIcon,
+      kubeObject: normalized,
+      data: normalized,
+      detailsComponent: NodeDetails,
+    } as TektonNode);
+    return;
+  }
+
   addNode(nodes, {
     id: nodeId,
     label,
@@ -452,6 +489,7 @@ function addClusterNode(
           ...(data?.metadata?.labels || data?.jsonData?.metadata?.labels || {}),
           [L.partOf]: "tekton",
           [L.component]: kind.toLowerCase(),
+          [L.instance]: clusterOf(data),
         },
       },
     },
@@ -479,10 +517,10 @@ function addEdge(
 const nodePriority: Record<NodeKind, number> = {
   EventListener: 10,
   Trigger: 20,
+  ClusterInterceptor: 25,
   TriggerTemplate: 30,
   TriggerBinding: 35,
   ClusterTriggerBinding: 35,
-  ClusterInterceptor: 35,
   Pipeline: 40,
   Task: 50,
   Step: 55,
@@ -495,6 +533,8 @@ function edgePriority(edge: GraphEdge) {
   const target = String(edge.target || "");
   if (source.startsWith("eventlistener-") && target.startsWith("trigger-"))
     return 10;
+  if (source.startsWith("trigger-") && target.startsWith("clusterinterceptor-"))
+    return 15;
   if (source.startsWith("trigger-") && target.startsWith("triggertemplate-"))
     return 20;
   if (source.startsWith("triggertemplate-") && target.startsWith("pipeline-"))
@@ -675,6 +715,7 @@ export function buildTektonGraph({
   bindings.forEach((binding) => {
     const ns = meta(binding).namespace;
     const bindingName = nameOf(binding);
+    const bindingCluster = clusterOf(binding);
     if (ns)
       addKubeNode(
         nodes,
@@ -687,7 +728,7 @@ export function buildTektonGraph({
     else
       addClusterNode(
         nodes,
-        ID.clusterTriggerBinding(bindingName),
+        ID.clusterTriggerBinding(bindingCluster, bindingName),
         bindingName,
         "ClusterTriggerBinding",
         binding,
@@ -695,9 +736,10 @@ export function buildTektonGraph({
   });
 
   interceptors.forEach((interceptor) => {
+    const interceptorCluster = clusterOf(interceptor);
     addClusterNode(
       nodes,
-      ID.clusterInterceptor(nameOf(interceptor)),
+      ID.clusterInterceptor(interceptorCluster, nameOf(interceptor)),
       nameOf(interceptor),
       "ClusterInterceptor",
       interceptor,
@@ -706,6 +748,7 @@ export function buildTektonGraph({
 
   listeners.forEach((listener) => {
     const ns = nsOf(listener);
+    const listenerCluster = clusterOf(listener);
     const listenerName = nameOf(listener);
     const listenerId = ID.eventListener(ns, listenerName);
     addKubeNode(nodes, listenerId, listenerName, "EventListener", listener, ns);
@@ -724,7 +767,7 @@ export function buildTektonGraph({
         link(
           triggerId,
           isCluster
-            ? ID.clusterTriggerBinding(ref)
+            ? ID.clusterTriggerBinding(listenerCluster, ref)
             : ID.triggerBinding(ns, ref),
           `binding-${bindingIndex}`,
         );
@@ -743,7 +786,7 @@ export function buildTektonGraph({
           if (interceptorName) {
             link(
               triggerId,
-              ID.clusterInterceptor(interceptorName),
+              ID.clusterInterceptor(listenerCluster, interceptorName),
               `interceptor-${interceptorIndex}`,
             );
           }

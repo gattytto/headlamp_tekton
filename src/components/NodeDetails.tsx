@@ -77,6 +77,10 @@ function kindOf(obj: any, node?: Props['node']) {
   return obj?.kind || obj?.jsonData?.kind || node?.subtitle || node?.data?.kind;
 }
 
+function metadataOf(obj: any) {
+  return obj?.metadata || obj?.jsonData?.metadata || obj?._jsonData?.metadata || {};
+}
+
 export function NodeDetails({ node }: Props) {
   if (!node) return <SectionBox title="Details">No node selected</SectionBox>;
 
@@ -100,13 +104,14 @@ export function NodeDetails({ node }: Props) {
   const obj = node.kubeObject;
   const resourceKind = kindOf(obj, node);
   const resourceType = resourceTypeFor(resourceKind);
+  const resourceMetadata = metadataOf(obj);
 
-  if (resourceType && obj.metadata?.name) {
+  if (resourceType && resourceMetadata.name) {
     return (
       <DetailsGrid
         resourceType={resourceType as any}
-        name={obj.metadata.name}
-        namespace={obj.metadata.namespace}
+        name={resourceMetadata.name}
+        namespace={resourceMetadata.namespace}
         cluster={clusterOf(obj)}
         withEvents
         extraInfo={item => item && mainInfoRows(item)}

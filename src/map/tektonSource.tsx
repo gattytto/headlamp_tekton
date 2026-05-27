@@ -141,13 +141,32 @@ function includeReferencedTemplates(templates: any[], selectedTemplates: any[], 
   return Array.from(selectedByKey.values());
 }
 
+function referencedClusterInterceptors(listeners: any[]) {
+  const refs = new Set<string>();
+  listeners.forEach(listener => {
+    (listener?.spec?.triggers || []).forEach((trigger: any) => {
+      (trigger?.interceptors || []).forEach((interceptor: any) => {
+        if (interceptor?.ref?.kind === 'ClusterInterceptor' && interceptor?.ref?.name) {
+          refs.add(interceptor.ref.name);
+        }
+      });
+    });
+  });
+  return refs;
+}
+
+function includeReferencedClusterInterceptors(interceptors: any[], listeners: any[]) {
+  const referenced = referencedClusterInterceptors(listeners);
+  if (!referenced.size) return [];
+  return interceptors.filter(interceptor => referenced.has(objectName(interceptor) || ''));
+}
+
 function onlyWhenNoNamespaceSelected<T extends any>(
   items: T[],
   selectedNamespaces: string[],
 ): T[] {
   return selectedNamespaces.length === 0 ? items : [];
 }
-
 function useGraphInterop() {
   const [version, setVersion] = useState(0);
 
@@ -247,6 +266,10 @@ export const tektonSource: ResourceSource = {
         filterBySelectedNamespaces(raw.listeners, selectedNamespaces),
         selectedTemplates,
       );
+      const selectedInterceptors =
+        selectedNamespaces.length > 0
+          ? includeReferencedClusterInterceptors(raw.interceptors, selectedListeners)
+          : raw.interceptors;
 
       const input = {
         pipelines: filterBySelectedNamespaces(raw.pipelines, selectedNamespaces),
@@ -256,9 +279,7 @@ export const tektonSource: ResourceSource = {
         bindings: filterBySelectedNamespaces(raw.bindings, selectedNamespaces),
         templates: includeReferencedTemplates(raw.templates, selectedTemplates, selectedListeners),
         listeners: selectedListeners,
-        // Headlamp re-groups selected-namespace maps after the source returns data.
-        // Cluster-scoped nodes disturb that layout, so they are shown only in the full/global map.
-        interceptors: onlyWhenNoNamespaceSelected(raw.interceptors, selectedNamespaces),
+        interceptors: selectedInterceptors,
         concolorProfiles: filterBySelectedNamespaces(raw.concolorProfiles, selectedNamespaces),
         selectedNamespaces,
         selectedNamespace: selectedNamespaces[0],
