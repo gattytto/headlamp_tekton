@@ -9,7 +9,11 @@ import {
   SimpleTable,
   StatusLabel,
 } from '@kinvolk/headlamp-plugin/lib/components/common';
+import { Editor } from '@monaco-editor/react';
 import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import { useTheme } from '@mui/material/styles';
+import { useEffect, useState } from 'react';
 import { RawJsonViewer } from './RawJSONViewer';
 
 const spec = (item: any) => item?.spec || item?.jsonData?.spec || {};
@@ -340,6 +344,133 @@ export function StepsSection({ steps }: { steps?: any[] }) {
   );
 }
 
+function cloneJson<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value));
+}
+
+function stepScriptEntries(steps?: any[]) {
+  return (steps || [])
+    .map((step, index) => ({ step, index }))
+    .filter(({ step }) => typeof step?.script === 'string');
+}
+
+function stepScriptTitle(step: any, index: number) {
+  return step?.name || `Step ${index + 1}`;
+}
+
+function StepScriptEditor({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const theme = useTheme();
+  const [height, setHeight] = useState(120);
+
+  return (
+    <Box
+      sx={{
+        width: '100%',
+        border: '1px solid',
+        borderColor: 'divider',
+        borderRadius: 1,
+        overflow: 'hidden',
+      }}
+    >
+      <Editor
+        value={value}
+        language="shell"
+        height={Math.min(Math.max(height, 120), 420)}
+        theme={theme.palette.mode === 'dark' ? 'vs-dark' : 'light'}
+        onChange={nextValue => onChange(nextValue ?? '')}
+        onMount={editor => {
+          const updateHeight = () => setHeight(editor.getContentHeight());
+          updateHeight();
+          editor.onDidContentSizeChange(updateHeight);
+        }}
+        options={{
+          minimap: { enabled: false },
+          scrollBeyondLastLine: false,
+          automaticLayout: true,
+          fontSize: 12,
+          lineNumbers: 'off',
+          wordWrap: 'on',
+        }}
+      />
+    </Box>
+  );
+}
+
+export function StepScriptsSection({ item }: { item: any }) {
+  const itemSpec = spec(item);
+  const scripts = stepScriptEntries(itemSpec.steps);
+  const scriptSnapshot = JSON.stringify(scripts.map(({ step, index }) => [index, step.script || '']));
+  const [values, setValues] = useState<Record<number, string>>(() =>
+    Object.fromEntries(scripts.map(({ step, index }) => [index, step.script || '']))
+  );
+  const [isDirty, setIsDirty] = useState(false);
+  const [statusText, setStatusText] = useState('');
+
+  useEffect(() => {
+    if (isDirty) return;
+    setValues(Object.fromEntries(scripts.map(({ step, index }) => [index, step.script || ''])));
+  }, [scriptSnapshot, isDirty]);
+
+  if (scripts.length === 0) return null;
+
+  const updateScript = (index: number, value: string) => {
+    setValues(current => ({ ...current, [index]: value }));
+    setIsDirty(true);
+    setStatusText('');
+  };
+
+  const saveScripts = async () => {
+    const nextResource = cloneJson(item.jsonData || item);
+    nextResource.spec = nextResource.spec || {};
+    nextResource.spec.steps = [...(nextResource.spec.steps || [])];
+    scripts.forEach(({ index }) => {
+      nextResource.spec.steps[index] = {
+        ...(nextResource.spec.steps[index] || {}),
+        script: values[index] ?? '',
+      };
+    });
+
+    try {
+      await item.update(nextResource);
+      setIsDirty(false);
+      setStatusText('Saved');
+    } catch (err: any) {
+      setStatusText(err?.message || 'Save failed');
+    }
+  };
+
+  return (
+    <SectionBox title="Step Scripts">
+      <NameValueTable
+        rows={scripts.map(({ step, index }) => {
+          const title = stepScriptTitle(step, index);
+          return {
+            name: title,
+            value: (
+              <StepScriptEditor
+                value={values[index] ?? ''}
+                onChange={value => updateScript(index, value)}
+              />
+            ),
+          };
+        })}
+      />
+      <Box mt={2} display="flex" alignItems="center" justifyContent="flex-end" gap={1}>
+        {statusText && <StatusLabel status={statusText === 'Saved' ? 'success' : 'error'}>{statusText}</StatusLabel>}
+        <Button variant="contained" color="primary" disabled={!isDirty} onClick={saveScripts}>
+          Save
+        </Button>
+      </Box>
+    </SectionBox>
+  );
+}
+
 export function ResultsSection({ results }: { results?: any[] }) {
   return (
     <SectionBox title="Results">
@@ -573,6 +704,10 @@ export function extraSectionsFor(item: any): any[] {
   if (kind === 'Task') {
     return [
       { id: 'steps', section: <StepsSection steps={s.steps} /> },
+      stepScriptEntries(s.steps).length > 0 && {
+        id: 'step-scripts',
+        section: <StepScriptsSection item={item} />,
+      },
       { id: 'params', section: <ParamsSection params={s.params} /> },
       { id: 'results', section: <ResultsSection results={s.results} /> },
       { id: 'workspaces', section: <WorkspacesSection workspaces={s.workspaces} /> },
