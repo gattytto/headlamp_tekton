@@ -241,21 +241,6 @@ export const tektonSource: ResourceSource = {
         concolorProfiles: concolorProfiles ?? [],
       };
 
-      const eventListenerDebug = raw.listeners.map(listener => ({
-        cluster: listener?.cluster || listener?._clusterName,
-        namespace: objectNamespace(listener),
-        name: objectName(listener),
-        uid: listener?.metadata?.uid || listener?.jsonData?.metadata?.uid,
-        kind: listener?.kind || listener?.jsonData?.kind,
-        apiVersion: listener?.jsonData?.apiVersion,
-        triggers: listener?.spec?.triggers?.length ?? listener?.jsonData?.spec?.triggers?.length ?? 0,
-      }));
-      console.debug('[tekton-eventlistener-map] source listeners', {
-        selectedNamespaces,
-        total: raw.listeners.length,
-        listeners: eventListenerDebug,
-      });
-
       const selectedTemplates = filterBySelectedNamespaces(raw.templates, selectedNamespaces);
       const selectedListeners = includeReferencedListeners(
         raw.listeners,

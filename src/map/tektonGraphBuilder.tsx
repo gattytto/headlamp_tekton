@@ -329,7 +329,7 @@ function normalizeForHeadlamp(
   const ns = namespace || meta(kubeObject).namespace;
   const json = kubeObject.jsonData || kubeObject._jsonData || kubeObject;
   const jsonMetadata = json?.metadata || {};
-  const resolvedKind = json.kind || kind || kubeObject.kind;
+  const resolvedKind = kind || json.kind || kubeObject.kind;
   const apiVersion =
     json.apiVersion ||
     (resolvedKind === "ClusterInterceptor"
@@ -396,21 +396,6 @@ function addKubeNode(
   namespace?: string,
 ) {
   const normalized = normalizeForHeadlamp(obj, namespace, kind.toLowerCase(), kind);
-  if (kind === "EventListener") {
-    console.debug("[tekton-eventlistener-map] graph node", {
-      nodeId,
-      label,
-      namespace,
-      cluster: normalized?.cluster || normalized?._clusterName,
-      metadata: normalized?.metadata,
-      kind: normalized?.kind,
-      jsonKind: normalized?.jsonData?.kind,
-      apiVersion: normalized?.jsonData?.apiVersion,
-      hasDetailsComponent: true,
-      hasKubeObject: Boolean(normalized),
-      constructor: normalized?.constructor?.name,
-    });
-  }
   addNode(nodes, {
     id: nodeId,
     label,
