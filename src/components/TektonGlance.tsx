@@ -31,6 +31,17 @@ function glanceObject(node: any) {
 
 export function TektonGlance({ node }: { node: any }) {
   const obj = glanceObject(node);
+  if (node?.subtitle === 'EventListener' || kind(obj) === 'EventListener') {
+    console.debug('[tekton-eventlistener-map] glance', {
+      nodeId: node?.id,
+      nodeSubtitle: node?.subtitle,
+      nodeHasKubeObject: Boolean(node?.kubeObject),
+      objectKind: kind(obj),
+      objectName: obj?.metadata?.name || obj?.jsonData?.metadata?.name,
+      objectNamespace: obj?.metadata?.namespace || obj?.jsonData?.metadata?.namespace,
+      objectCluster: obj?.cluster || obj?._clusterName,
+    });
+  }
 
   if (!tektonKinds.includes(kind(obj))) {
     return null;

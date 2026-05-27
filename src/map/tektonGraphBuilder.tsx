@@ -396,6 +396,21 @@ function addKubeNode(
   namespace?: string,
 ) {
   const normalized = normalizeForHeadlamp(obj, namespace, kind.toLowerCase(), kind);
+  if (kind === "EventListener") {
+    console.debug("[tekton-eventlistener-map] graph node", {
+      nodeId,
+      label,
+      namespace,
+      cluster: normalized?.cluster || normalized?._clusterName,
+      metadata: normalized?.metadata,
+      kind: normalized?.kind,
+      jsonKind: normalized?.jsonData?.kind,
+      apiVersion: normalized?.jsonData?.apiVersion,
+      hasDetailsComponent: true,
+      hasKubeObject: Boolean(normalized),
+      constructor: normalized?.constructor?.name,
+    });
+  }
   addNode(nodes, {
     id: nodeId,
     label,

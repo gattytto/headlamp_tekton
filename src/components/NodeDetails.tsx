@@ -100,6 +100,19 @@ export function NodeDetails({ node }: Props) {
   const obj = node.kubeObject;
   const resourceKind = kindOf(obj, node);
   const resourceType = resourceTypeFor(resourceKind);
+  if (resourceKind === 'EventListener' || node.subtitle === 'EventListener') {
+    console.debug('[tekton-eventlistener-map] node details', {
+      nodeId: node.id,
+      nodeSubtitle: node.subtitle,
+      hasKubeObject: Boolean(node.kubeObject),
+      resourceKind,
+      hasResourceType: Boolean(resourceType),
+      name: obj?.metadata?.name || obj?.jsonData?.metadata?.name,
+      namespace: obj?.metadata?.namespace || obj?.jsonData?.metadata?.namespace,
+      cluster: clusterOf(obj),
+      constructor: obj?.constructor?.name,
+    });
+  }
 
   if (resourceType && obj.metadata?.name) {
     return (
