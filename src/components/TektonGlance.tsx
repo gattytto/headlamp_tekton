@@ -2,6 +2,7 @@
 
 import Box from '@mui/material/Box';
 import { StatusLabel } from '@kinvolk/headlamp-plugin/lib/components/common';
+import { TektonRunActions } from './RunActions';
 import { mainInfoRows } from '../pages/detailHelpers';
 
 const kind = (obj: any) => obj?.kind || obj?.jsonData?.kind || obj?._class?.()?.kind || obj?.constructor?.kind;
@@ -40,30 +41,35 @@ export function TektonGlance({ node }: { node: any }) {
   if (!rows.length) return null;
 
   return (
-    <Box display="flex" gap={1} alignItems="center" mt={2} flexWrap="wrap" minWidth="260px" maxWidth="360px">
-      {rows.slice(0, 4).map(row => (
-        row.name === 'Status' ? (
-          <Box key={String(row.name)}>{row.value}</Box>
-        ) : (
-          <StatusLabel
-            status=""
-            key={String(row.name)}
-            title={typeof row.value === 'string' ? row.value : undefined}
-            sx={{
-              display: 'inline-block',
-              maxWidth: '100%',
-              minWidth: 0,
-              whiteSpace: 'normal',
-              overflow: 'hidden',
-              overflowWrap: 'normal',
-              wordBreak: 'normal',
-              lineHeight: 1.35,
-            }}
-          >
-            {row.name}: {row.value}
-          </StatusLabel>
-        )
-      ))}
+    <Box mt={2} minWidth="260px" maxWidth="360px">
+      <Box display="flex" gap={1} alignItems="center" flexWrap="wrap">
+        {rows.slice(0, 4).map(row => (
+          row.name === 'Status' ? (
+            <Box key={String(row.name)}>{row.value}</Box>
+          ) : (
+            <StatusLabel
+              status=""
+              key={String(row.name)}
+              title={typeof row.value === 'string' ? row.value : undefined}
+              sx={{
+                display: 'inline-block',
+                maxWidth: '100%',
+                minWidth: 0,
+                whiteSpace: 'normal',
+                overflow: 'hidden',
+                overflowWrap: 'normal',
+                wordBreak: 'normal',
+                lineHeight: 1.35,
+              }}
+            >
+              {row.name}: {row.value}
+            </StatusLabel>
+          )
+        ))}
+      </Box>
+      <Box mt={1}>
+        <TektonRunActions item={obj} variant="compact" />
+      </Box>
     </Box>
   );
 }

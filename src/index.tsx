@@ -3,11 +3,18 @@
 
 import { registerTektonSidebar } from './sidebar';
 import { registerTektonRoutes } from './routes';
-import { registerKindIcon, registerKubeObjectGlance, registerMapSource } from '@kinvolk/headlamp-plugin/lib';
+import {
+  registerDetailsViewHeaderAction,
+  registerDetailsViewHeaderActionsProcessor,
+  registerKindIcon,
+  registerKubeObjectGlance,
+  registerMapSource,
+} from '@kinvolk/headlamp-plugin/lib';
 import { tektonSource } from './map/tektonSource';
 import { Icon, addIcon } from '@iconify/react';
 import customSvgIcon from './favicon.svg?raw';
 import { TektonGlance } from './components/TektonGlance';
+import { TektonRunHeaderActions, isTektonRunResource } from './components/RunActions';
 
 addIcon('custom:tekton', {
   body: customSvgIcon,
@@ -43,4 +50,18 @@ registerKindIcon('EventListener', tektonKindIcon);
 registerTektonSidebar();
 registerTektonRoutes();
 registerKubeObjectGlance({ id: 'tekton-glance', component: TektonGlance });
+registerDetailsViewHeaderAction({
+  id: 'tekton-run-actions',
+  action: TektonRunHeaderActions,
+});
+registerDetailsViewHeaderActionsProcessor({
+  id: 'tekton-run-actions-filter',
+  processor: (resource: any, actions: any[]) => {
+    if (isTektonRunResource(resource)) {
+      return actions;
+    }
+
+    return actions.filter(action => action?.id !== 'tekton-run-actions');
+  },
+});
 registerMapSource(tektonSource);

@@ -14,6 +14,7 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import { useTheme } from '@mui/material/styles';
 import { useEffect, useState } from 'react';
+import { TektonRunActions } from '../components/RunActions';
 import { RawJsonViewer } from './RawJSONViewer';
 
 const spec = (item: any) => item?.spec || item?.jsonData?.spec || {};
@@ -691,6 +692,14 @@ export function extraSectionsFor(item: any): any[] {
 
   if (kind === 'PipelineRun') {
     return [
+      {
+        id: 'run-actions',
+        section: (
+          <SectionBox title="Run Actions">
+            <TektonRunActions item={item} />
+          </SectionBox>
+        ),
+      },
       { id: 'conditions', section: <ConditionsSummarySection item={item} /> },
       { id: 'run-progress', section: <RunProgressSection item={item} /> },
       { id: 'child-references', section: <ChildReferencesSection item={item} /> },
@@ -717,6 +726,14 @@ export function extraSectionsFor(item: any): any[] {
 
   if (kind === 'TaskRun') {
     return [
+      {
+        id: 'run-actions',
+        section: (
+          <SectionBox title="Run Actions">
+            <TektonRunActions item={item} />
+          </SectionBox>
+        ),
+      },
       { id: 'conditions', section: <ConditionsSummarySection item={item} /> },
       { id: 'run-progress', section: <RunProgressSection item={item} /> },
       { id: 'step-status', section: <StepStatusSection steps={st.steps} /> },
