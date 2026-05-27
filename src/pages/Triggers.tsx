@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: EPL-2.0
-// headlamp_tekton/stc/pages/Triggers.tsx
+// headlamp_tekton/src/pages/Triggers.tsx
 
 import { SectionBox, SimpleTable } from '@kinvolk/headlamp-plugin/lib/components/common';
 import { TriggerBindingClass } from '../crd/trigger';

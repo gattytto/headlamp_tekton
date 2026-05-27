@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: EPL-2.0
-// headlamp_tekton/stc/crd/trigger.ts
+// headlamp_tekton/src/crd/trigger.ts
 
 import { KubeObject, KubeObjectInterface } from '@kinvolk/headlamp-plugin/lib/k8s/cluster';
 
@@ -14,21 +14,6 @@ export class TriggerBindingClass extends KubeObject<KubeObjectInterface> {
   }
 
   static get listRoute() {
-    return 'EventListeners';
-  }
-}
-
-export class ClusterInterceptorClass extends KubeObject<KubeObjectInterface> {
-  static apiVersion = ['triggers.tekton.dev/v1beta1', 'triggers.tekton.dev/v1alpha1'];
-  static kind = 'ClusterInterceptor';
-  static apiName = 'clusterinterceptors';
-  static isNamespaced = false;
-
-  static get detailsRoute() {
-    return 'clusterinterceptor-details';
-  }
-
-  static get listRoute() {
-    return 'ClusterInterceptors';
+    return 'Triggers';
   }
 }

@@ -3,8 +3,8 @@
 
 // Resource-map source definition for Tekton resources.
 // No namespace selected: return the complete Tekton map, including cluster-scoped resources.
-// One or more namespaces selected: return only resources scoped to those namespaces;
-// cluster-scoped Tekton resources and their edges are intentionally excluded.
+// One or more namespaces selected: return resources scoped to those namespaces, plus
+// cluster-scoped interceptors referenced by selected EventListeners.
 
 import React from "react";
 import { Icon } from "@iconify/react";

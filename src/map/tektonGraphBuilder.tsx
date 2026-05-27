@@ -87,8 +87,8 @@ const id = (kind: string, ...parts: Array<string | number | undefined>) =>
   [kind, ...parts.filter((v) => v !== undefined && v !== "")].join("-");
 
 // Stable Resource Map node ID builders.
-// IDs include kind + namespace + name so edges stay valid across refreshes;
-// cluster-scoped resources intentionally omit namespace.
+// IDs include kind + cluster + namespace + name so edges stay valid across refreshes.
+// Cluster-scoped resources intentionally omit namespace, but still include cluster.
 const ID = {
   pipeline: (cluster: string, ns: string, name: string) => id("pipeline", cluster, ns, name),
   pipelineRun: (cluster: string, ns: string, name: string) => id("pipelinerun", cluster, ns, name),

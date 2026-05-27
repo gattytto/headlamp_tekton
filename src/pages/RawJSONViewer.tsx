@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: EPL-2.0
-// headlamp_tekton/stc/pages/RawJSONViewer.tsx
+// headlamp_tekton/src/pages/RawJSONViewer.tsx
 
 import { useState } from 'react';
 import { Editor } from '@monaco-editor/react';

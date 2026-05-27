@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: EPL-2.0
-// headlamp_tekton/stc/pages/PipelineRuns.tsx
+// headlamp_tekton/src/pages/PipelineRuns.tsx
 
 import { SectionBox, SimpleTable } from '@kinvolk/headlamp-plugin/lib/components/common';
 import { PipelineRunClass } from '../crd/pipelinerun';

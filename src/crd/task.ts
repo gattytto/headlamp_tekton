@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: EPL-2.0
-// headlamp_tekton/stc/crd/task.ts
+// headlamp_tekton/src/crd/task.ts
 
 import { KubeObject, KubeObjectInterface } from '@kinvolk/headlamp-plugin/lib/k8s/cluster';
 

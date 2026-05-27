@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: EPL-2.0
-// headlamp_tekton/stc/pages/Overview.tsx
+// headlamp_tekton/src/pages/Overview.tsx
 
 import { SectionBox } from '@kinvolk/headlamp-plugin/lib/components/common';
 import Grid from '@mui/material/Grid';

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: EPL-2.0
-// headlamp_tekton/stc/crd/triggertemplate.ts
+// headlamp_tekton/src/crd/triggertemplate.ts
 
 import {
   KubeObject,

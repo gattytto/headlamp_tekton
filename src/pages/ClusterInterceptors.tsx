@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: EPL-2.0
-// headlamp_tekton/stc/pages/ClusterInterceptors.tsx
+// headlamp_tekton/src/pages/ClusterInterceptors.tsx
 
 import {
   SectionBox,

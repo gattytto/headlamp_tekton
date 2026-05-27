@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: EPL-2.0
-// headlamp_tekton/stc/pages/TaskRuns.tsx
+// headlamp_tekton/src/pages/TaskRuns.tsx
 
 import { SectionBox, SimpleTable } from '@kinvolk/headlamp-plugin/lib/components/common';
 import { TaskRunClass } from '../crd/taskrun';

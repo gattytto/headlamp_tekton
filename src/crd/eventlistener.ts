@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: EPL-2.0
-// headlamp_tekton/stc/crd/eventlistener.ts
+// headlamp_tekton/src/crd/eventlistener.ts
 
 import {
   KubeObject,
