@@ -4,6 +4,7 @@
 import { SectionBox, SimpleTable } from '@kinvolk/headlamp-plugin/lib/components/common';
 import { PipelineRunClass } from '../crd/pipelinerun';
 import { LinkToResource } from '../components/LinkToResource';
+import { TektonRunActions } from '../components/RunActions';
 import { durationText } from './detailHelpers';
 
 export function PipelineRunsPage() {
@@ -44,6 +45,10 @@ export function PipelineRunsPage() {
           {
             label: 'Age',
             getter: item => item.metadata?.creationTimestamp ?? '-',
+          },
+          {
+            label: 'Actions',
+            getter: item => <TektonRunActions item={item} variant="compact" />,
           },
         ]}
       />

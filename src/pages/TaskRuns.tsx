@@ -4,6 +4,7 @@
 import { SectionBox, SimpleTable } from '@kinvolk/headlamp-plugin/lib/components/common';
 import { TaskRunClass } from '../crd/taskrun';
 import { LinkToResource } from '../components/LinkToResource';
+import { TektonRunActions } from '../components/RunActions';
 import { durationText } from './detailHelpers';
 
 export function TaskRunsPage() {
@@ -44,6 +45,10 @@ export function TaskRunsPage() {
           {
             label: 'Age',
             getter: item => item.metadata?.creationTimestamp ?? '-',
+          },
+          {
+            label: 'Actions',
+            getter: item => <TektonRunActions item={item} variant="compact" />,
           },
         ]}
       />
