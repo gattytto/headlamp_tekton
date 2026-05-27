@@ -616,7 +616,7 @@ export function buildTektonGraph({
 
     pipelineEntries(pipeline).forEach((entry) => {
       const taskName = entryName(entry);
-      const target = targetForPipelineEntry(ns, pipelineName, entry);
+      const target = targetForPipelineEntry(cluster, ns, pipelineName, entry);
 
       if (isResolverEntry(entry)) {
         const virtualId = ID.virtualTask(cluster, ns, pipelineName, taskName);

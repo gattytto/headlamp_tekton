@@ -260,10 +260,13 @@ export const tektonSource: ResourceSource = {
         filterBySelectedNamespaces(raw.listeners, selectedNamespaces),
         selectedTemplates,
       );
+      const referencedInterceptors = includeReferencedClusterInterceptors(raw.interceptors, selectedListeners);
       const selectedInterceptors =
-        selectedNamespaces.length > 0
-          ? includeReferencedClusterInterceptors(raw.interceptors, selectedListeners)
-          : raw.interceptors;
+        referencedInterceptors.length > 0
+          ? referencedInterceptors
+          : selectedNamespaces.length === 0
+            ? raw.interceptors
+            : [];
 
       const input = {
         pipelines: filterBySelectedNamespaces(raw.pipelines, selectedNamespaces),
