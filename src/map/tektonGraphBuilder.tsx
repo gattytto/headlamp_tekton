@@ -31,6 +31,10 @@ type Args = {
   interceptors?: any[];
   concolorProfiles?: any[];
   suppressConcolorPolicyRuntimeEdges?: boolean;
+  activeConcolorPolicyKinds?: {
+    NetworkPolicy?: boolean;
+    StagedNetworkPolicy?: boolean;
+  };
   includeSteps?: boolean;
 
   // Accepted for compatibility with existing callers. Filtering happens in tektonSource.
@@ -159,7 +163,12 @@ function taskNameForTaskRun(taskRun: any) {
   );
 }
 
-function hasPolicyMediatedPipelineRunEdge(taskRun: any, pipelineRun: any, profiles: any[]) {
+function hasPolicyMediatedPipelineRunEdge(
+  taskRun: any,
+  pipelineRun: any,
+  profiles: any[],
+  activePolicyKinds?: Args["activeConcolorPolicyKinds"],
+) {
   if (!pipelineRun) {
     return false;
   }
@@ -167,7 +176,12 @@ function hasPolicyMediatedPipelineRunEdge(taskRun: any, pipelineRun: any, profil
   const taskRunLabels = labels(taskRun);
   const pipelineRunLabels = labels(pipelineRun);
   const selectors = profiles
-    .filter((profile) => profile?.status?.generatedCalicoPolicy)
+    .filter((profile) => {
+      const policyKind = profile?.status?.generatedCalicoPolicy?.kind;
+      if (!policyKind) return false;
+      if (!activePolicyKinds) return true;
+      return Boolean(activePolicyKinds[policyKind as keyof typeof activePolicyKinds]);
+    })
     .map((profile) => profile?.status?.selectorLabel)
     .filter((selector) => selector?.key && selector?.value);
 
@@ -177,6 +191,10 @@ function hasPolicyMediatedPipelineRunEdge(taskRun: any, pipelineRun: any, profil
         taskRunLabels[selector.key] === selector.value &&
         pipelineRunLabels[selector.key] === selector.value,
     );
+  }
+
+  if (activePolicyKinds) {
+    return false;
   }
 
   const concolorLabels = Object.entries(taskRunLabels).filter(([label]) =>
@@ -586,6 +604,7 @@ export function buildTektonGraph({
   interceptors = [],
   concolorProfiles = [],
   suppressConcolorPolicyRuntimeEdges = false,
+  activeConcolorPolicyKinds,
   includeSteps = true,
 }: Args) {
   const nodes = new Map<string, TektonNode>();
@@ -699,7 +718,12 @@ export function buildTektonGraph({
     );
     const suppressDirectPipelineRunEdge =
       suppressConcolorPolicyRuntimeEdges &&
-      hasPolicyMediatedPipelineRunEdge(run, pipelineRun, concolorProfiles);
+      hasPolicyMediatedPipelineRunEdge(
+        run,
+        pipelineRun,
+        concolorProfiles,
+        activeConcolorPolicyKinds,
+      );
 
     if (
       !suppressConcolorPolicyRuntimeEdges ||

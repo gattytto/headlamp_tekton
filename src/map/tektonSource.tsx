@@ -202,6 +202,10 @@ function useGraphInterop() {
     suppressConcolorPolicyRuntimeEdges: Boolean(
       interop.calicoPolicyRuntime,
     ),
+    activeConcolorPolicyKinds: {
+      NetworkPolicy: Boolean(interop.calicoNetworkPolicyRuntime),
+      StagedNetworkPolicy: Boolean(interop.calicoStagedNetworkPolicyRuntime),
+    },
     interop: interopSnapshot,
   };
 }
@@ -298,6 +302,7 @@ function makeTektonSource(id: string, label: string, kinds: string[]): ResourceS
         includeSteps: true,
         suppressConcolorPolicyRuntimeEdges:
           interop.suppressConcolorPolicyRuntimeEdges,
+        activeConcolorPolicyKinds: interop.activeConcolorPolicyKinds,
       };
 
       let { graphNodes, edges } = buildTektonGraph(input);
