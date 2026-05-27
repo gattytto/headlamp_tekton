@@ -45,7 +45,21 @@ export function TektonGlance({ node }: { node: any }) {
         row.name === 'Status' ? (
           <Box key={String(row.name)}>{row.value}</Box>
         ) : (
-          <StatusLabel status="" key={String(row.name)}>
+          <StatusLabel
+            status=""
+            key={String(row.name)}
+            title={typeof row.value === 'string' ? row.value : undefined}
+            sx={{
+              display: 'inline-block',
+              maxWidth: '100%',
+              minWidth: 0,
+              whiteSpace: 'normal',
+              overflow: 'hidden',
+              overflowWrap: 'normal',
+              wordBreak: 'normal',
+              lineHeight: 1.35,
+            }}
+          >
             {row.name}: {row.value}
           </StatusLabel>
         )

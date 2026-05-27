@@ -9,6 +9,7 @@ import {
   SimpleTable,
   StatusLabel,
 } from '@kinvolk/headlamp-plugin/lib/components/common';
+import Box from '@mui/material/Box';
 import { RawJsonViewer } from './RawJSONViewer';
 
 const spec = (item: any) => item?.spec || item?.jsonData?.spec || {};
@@ -23,6 +24,30 @@ function listValue(value: any) {
 
 function objectName(value: any) {
   return value?.name || value?.ref || value?.resource || '-';
+}
+
+function softBreakUrl(value: string) {
+  return value.replace(/([/:.=\-])/g, '$1\u200b');
+}
+
+function LongValue({ value }: { value: string }) {
+  return (
+    <Box
+      component="span"
+      title={value}
+      sx={{
+        display: 'inline',
+        maxWidth: '100%',
+        minWidth: 0,
+        whiteSpace: 'normal',
+        overflowWrap: 'normal',
+        wordBreak: 'normal',
+        lineHeight: 1.35,
+      }}
+    >
+      {softBreakUrl(value)}
+    </Box>
+  );
 }
 
 function triggerTemplateRef(trigger: any, defaultNamespace?: string) {
@@ -197,6 +222,7 @@ export function mainInfoRows(item: any) {
   }
 
   if (kind === 'EventListener') {
+    const address = st.address?.url || '-';
     return [
       { name: 'Triggers', value: s.triggers?.length ?? 0 },
       { name: 'Service Account', value: s.serviceAccountName || s.taskRunTemplate?.serviceAccountName || '-' },
@@ -204,7 +230,7 @@ export function mainInfoRows(item: any) {
         name: 'Namespace Selector',
         value: s.namespaceSelector?.matchNames?.join(', ') || (s.namespaceSelector ? 'Configured' : '-'),
       },
-      { name: 'Address', value: st.address?.url || '-' },
+      { name: 'Address', value: address === '-' ? '-' : <LongValue value={address} /> },
     ];
   }
 
