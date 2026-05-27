@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: EPL-2.0
 
-import { SectionBox, SimpleTable, StatusLabel } from '@kinvolk/headlamp-plugin/lib/components/common';
+import { ResourceListView, SectionBox, StatusLabel } from '@kinvolk/headlamp-plugin/lib/components/common';
 import { EventListenerClass } from '../crd/eventlistener';
 import { LinkToResource } from '../components/LinkToResource';
 
@@ -24,48 +24,49 @@ export function EventListenersPage() {
   }
 
   return (
-    <SectionBox title="EventListeners">
-      <SimpleTable
-        data={items}
-        emptyMessage="No EventListeners found."
-        columns={[
-          {
-            label: 'Name',
-            getter: item => (
-              <LinkToResource
-                name={item.metadata.name}
-                kind="EventListener"
-                namespace={item.metadata.namespace}
-                kubeObject={item}
-              />
-            ),
-          },
-          {
-            label: 'Namespace',
-            getter: item => item.metadata.namespace || '-',
-          },
-          {
-            label: 'Triggers',
-            getter: item => item.spec?.triggers?.length ?? 0,
-          },
-          {
-            label: 'Service Account',
-            getter: item => item.spec?.serviceAccountName || item.spec?.taskRunTemplate?.serviceAccountName || '-',
-          },
-          {
-            label: 'Status',
-            getter: item => eventListenerStatus(item),
-          },
-          {
-            label: 'Address',
-            getter: item => item.status?.address?.url || '-',
-          },
-          {
-            label: 'Age',
-            getter: item => item.metadata?.creationTimestamp ?? '-',
-          },
-        ]}
-      />
-    </SectionBox>
+    <ResourceListView
+      title="EventListeners"
+      data={items}
+      id="tekton-eventlisteners"
+      columns={[
+        {
+          id: 'name',
+          label: 'Name',
+          getValue: item => item.metadata.name,
+          render: item => (
+            <LinkToResource
+              name={item.metadata.name}
+              kind="EventListener"
+              namespace={item.metadata.namespace}
+              kubeObject={item}
+            />
+          ),
+        },
+        'cluster',
+        'namespace',
+        {
+          id: 'triggers',
+          label: 'Triggers',
+          getValue: item => item.spec?.triggers?.length ?? 0,
+        },
+        {
+          id: 'service-account',
+          label: 'Service Account',
+          getValue: item => item.spec?.serviceAccountName || item.spec?.taskRunTemplate?.serviceAccountName || '-',
+        },
+        {
+          id: 'status',
+          label: 'Status',
+          getValue: item => item.status?.conditions?.[0]?.reason ?? 'Unknown',
+          render: item => eventListenerStatus(item),
+        },
+        {
+          id: 'address',
+          label: 'Address',
+          getValue: item => item.status?.address?.url || '-',
+        },
+        'age',
+      ]}
+    />
   );
 }

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: EPL-2.0
 // headlamp_tekton/src/pages/Triggers.tsx
 
-import { SectionBox, SimpleTable } from '@kinvolk/headlamp-plugin/lib/components/common';
+import { ResourceListView } from '@kinvolk/headlamp-plugin/lib/components/common';
 import { TriggerBindingClass } from '../crd/trigger';
 import { TriggerTemplateClass } from '../crd/triggertemplate';
 import { EventListenerClass } from '../crd/eventlistener';
@@ -18,62 +18,77 @@ export function TriggersPage() {
 
   return (
     <>
-      <SectionBox title="TriggerBindings">
-        <SimpleTable
-          data={bindings}
-          columns={[
-            {
-              label: 'Name',
-              getter: item => (
-                <LinkToResource
-                  name={item.metadata.name}
-                  kind="TriggerBinding"
-                  namespace={item.metadata.namespace}
-                  kubeObject={item}
-                />
-              ),
-            },
-          ]}
-        />
-      </SectionBox>
+      <ResourceListView
+        title="TriggerBindings"
+        data={bindings}
+        id="tekton-triggerbindings"
+        columns={[
+          {
+            id: 'name',
+            label: 'Name',
+            getValue: item => item.metadata.name,
+            render: item => (
+              <LinkToResource
+                name={item.metadata.name}
+                kind="TriggerBinding"
+                namespace={item.metadata.namespace}
+                kubeObject={item}
+              />
+            ),
+          },
+          'cluster',
+          'namespace',
+          'age',
+        ]}
+      />
 
-      <SectionBox title="TriggerTemplates">
-        <SimpleTable
-          data={templates}
-          columns={[
-            {
-              label: 'Name',
-              getter: item => (
-                <LinkToResource
-                  name={item.metadata.name}
-                  kind="TriggerTemplate"
-                  namespace={item.metadata.namespace}
-                  kubeObject={item}
-                />
-              ),
-            },
-          ]}
-        />
-      </SectionBox>
+      <ResourceListView
+        title="TriggerTemplates"
+        data={templates}
+        id="tekton-triggertemplates"
+        columns={[
+          {
+            id: 'name',
+            label: 'Name',
+            getValue: item => item.metadata.name,
+            render: item => (
+              <LinkToResource
+                name={item.metadata.name}
+                kind="TriggerTemplate"
+                namespace={item.metadata.namespace}
+                kubeObject={item}
+              />
+            ),
+          },
+          'cluster',
+          'namespace',
+          'age',
+        ]}
+      />
 
-      <SectionBox title="EventListeners">
-        <SimpleTable
-          data={listeners}
-          columns={[
-            {
-              label: 'Name',
-              getter: item => (
-                <LinkToResource
-                  name={item.metadata.name}
-                  kind="EventListener"
-                  namespace={item.metadata.namespace}
-                  kubeObject={item}
-                />
-              ),
-            },
-          ]}
-        />
-      </SectionBox>
+      <ResourceListView
+        title="EventListeners"
+        data={listeners}
+        id="tekton-triggers-eventlisteners"
+        columns={[
+          {
+            id: 'name',
+            label: 'Name',
+            getValue: item => item.metadata.name,
+            render: item => (
+              <LinkToResource
+                name={item.metadata.name}
+                kind="EventListener"
+                namespace={item.metadata.namespace}
+                kubeObject={item}
+              />
+            ),
+          },
+          'cluster',
+          'namespace',
+          'age',
+        ]}
+      />
     </>
   );
 }

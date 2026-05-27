@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: EPL-2.0
 // headlamp_tekton/src/pages/PipelineRuns.tsx
 
-import { SectionBox, SimpleTable } from '@kinvolk/headlamp-plugin/lib/components/common';
+import { ResourceListView } from '@kinvolk/headlamp-plugin/lib/components/common';
 import { PipelineRunClass } from '../crd/pipelinerun';
 import { LinkToResource } from '../components/LinkToResource';
-import { TektonRunActions } from '../components/RunActions';
+import { TektonRerunMenuAction } from '../components/RunActions';
 import { durationText } from './detailHelpers';
 
 export function PipelineRunsPage() {
@@ -13,45 +13,49 @@ export function PipelineRunsPage() {
   if (!items) return <div style={{ padding: 16 }}>Loading...</div>;
 
   return (
-    <SectionBox title="PipelineRuns">
-      <SimpleTable
-        data={items}
-        emptyMessage="No PipelineRuns found."
-        columns={[
-          {
-            label: 'Name',
-            getter: item => (
-              <LinkToResource
-                name={item.metadata.name}
-                kind="PipelineRun"
-                namespace={item.metadata.namespace}
-                kubeObject={item}
-              />
-            ),
-          },
-          {
-            label: 'Pipeline',
-            getter: item => item.spec?.pipelineRef?.name ?? '-',
-          },
-          {
-            label: 'Status',
-            getter: item =>
-              item.status?.conditions?.[0]?.reason ?? 'Unknown',
-          },
-          {
-            label: 'Duration',
-            getter: item => durationText(item.status?.startTime, item.status?.completionTime),
-          },
-          {
-            label: 'Age',
-            getter: item => item.metadata?.creationTimestamp ?? '-',
-          },
-          {
-            label: 'Actions',
-            getter: item => <TektonRunActions item={item} variant="compact" />,
-          },
-        ]}
-      />
-    </SectionBox>
+    <ResourceListView
+      title="PipelineRuns"
+      data={items}
+      id="tekton-pipelineruns"
+      actions={[
+        {
+          id: 'tekton-rerun',
+          action: ({ item, closeMenu }) => <TektonRerunMenuAction item={item} closeMenu={closeMenu} />,
+        },
+      ]}
+      columns={[
+        {
+          id: 'name',
+          label: 'Name',
+          getValue: item => item.metadata.name,
+          render: item => (
+            <LinkToResource
+              name={item.metadata.name}
+              kind="PipelineRun"
+              namespace={item.metadata.namespace}
+              kubeObject={item}
+            />
+          ),
+        },
+        'cluster',
+        'namespace',
+        {
+          id: 'pipeline',
+          label: 'Pipeline',
+          getValue: item => item.spec?.pipelineRef?.name ?? '-',
+        },
+        {
+          id: 'status',
+          label: 'Status',
+          getValue: item => item.status?.conditions?.[0]?.reason ?? 'Unknown',
+        },
+        {
+          id: 'duration',
+          label: 'Duration',
+          getValue: item => durationText(item.status?.startTime, item.status?.completionTime),
+        },
+        'age',
+      ]}
+    />
   );
 }

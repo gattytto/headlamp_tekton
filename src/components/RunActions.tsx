@@ -266,3 +266,35 @@ export function TektonRunHeaderActions({ item }: { item: any }) {
     </Stack>
   );
 }
+
+export function TektonRerunMenuAction({
+  item,
+  closeMenu,
+}: {
+  item: any;
+  closeMenu?: () => void;
+}) {
+  const [busy, setBusy] = useState(false);
+
+  if (!isTektonRunResource(item) || !isDone(item)) return null;
+
+  return (
+    <ActionButton
+      description={busy ? 'Working...' : 'Rerun'}
+      longDescription={busy ? 'Working...' : 'Rerun'}
+      icon="mdi:replay-circle"
+      buttonStyle="menu"
+      onClick={async event => {
+        event.preventDefault();
+        event.stopPropagation();
+        setBusy(true);
+        try {
+          await rerun(item);
+          closeMenu?.();
+        } finally {
+          setBusy(false);
+        }
+      }}
+    />
+  );
+}

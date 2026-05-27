@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: EPL-2.0
 // headlamp_tekton/src/pages/Pipelines.tsx
 
-import { SectionBox, SimpleTable } from '@kinvolk/headlamp-plugin/lib/components/common';
+import { ResourceListView } from '@kinvolk/headlamp-plugin/lib/components/common';
 import { PipelineClass } from '../crd/pipeline';
 import { LinkToResource } from '../components/LinkToResource';
 
@@ -11,39 +11,36 @@ export function PipelinesPage() {
   if (!items) return <div style={{ padding: 16 }}>Loading...</div>;
 
   return (
-    <SectionBox title="Pipelines">
-      <SimpleTable
-        data={items}
-        emptyMessage="No Pipelines found."
-        columns={[
-          {
-            label: 'Name',
-            getter: item => (
-              <LinkToResource
-                name={item.metadata.name}
-                kind="Pipeline"
-                namespace={item.metadata.namespace}
-                kubeObject={item}
-              />
-            ),
+    <ResourceListView
+      title="Pipelines"
+      data={items}
+      id="tekton-pipelines"
+      columns={[
+        {
+          id: 'name',
+          label: 'Name',
+          getValue: item => item.metadata.name,
+          render: item => (
+            <LinkToResource
+              name={item.metadata.name}
+              kind="Pipeline"
+              namespace={item.metadata.namespace}
+              kubeObject={item}
+            />
+          ),
+        },
+        'cluster',
+        {
+          id: 'tasks',
+          label: 'Tasks',
+          getValue: item => {
+            const spec = item.spec ?? item.jsonData?.spec ?? {};
+            return Array.isArray(spec?.tasks) ? spec.tasks.length : 0;
           },
-          {
-            label: 'Tasks',
-            getter: item => {
-              const spec = item.spec ?? item.jsonData?.spec ?? {};
-              return Array.isArray(spec?.tasks) ? spec.tasks.length : 0;
-            },
-          },
-          {
-            label: 'Namespace',
-            getter: item => item.metadata?.namespace ?? '-',
-          },
-          {
-            label: 'Age',
-            getter: item => item.metadata?.creationTimestamp ?? '-',
-          },
-        ]}
-      />
-    </SectionBox>
+        },
+        'namespace',
+        'age',
+      ]}
+    />
   );
 }
