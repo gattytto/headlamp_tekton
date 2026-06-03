@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: EPL-2.0
+﻿// SPDX-License-Identifier: EPL-2.0
 // headlamp_tekton/src/map/tektonSource.tsx
 
 // Resource-map source definition for Tekton resources.

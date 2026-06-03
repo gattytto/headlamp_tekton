@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: EPL-2.0
+﻿// SPDX-License-Identifier: EPL-2.0
 // headlamp_tekton/src/pages/ClusterInterceptors.tsx
 
 import { ResourceListView } from '@kinvolk/headlamp-plugin/lib/components/common';

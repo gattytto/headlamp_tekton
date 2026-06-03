@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: EPL-2.0
+﻿// SPDX-License-Identifier: EPL-2.0
 // headlamp_tekton/src/map/tektonGraphBuilder.tsx
 //
 // Builds a left-to-right Tekton graph for Headlamp's Resource Map:

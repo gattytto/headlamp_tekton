@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: EPL-2.0
-
+﻿// SPDX-License-Identifier: EPL-2.0
+// headlamp_tekton/src/crd/index.ts
 export * from './clusterinterceptor';
 export * from './concolor';
 export * from './eventlistener';

@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: EPL-2.0
-
+﻿// SPDX-License-Identifier: EPL-2.0
+// headlamp_tekton/src/pages/detailHelpers.tsx
 import {
   ConditionsSection,
   Link,

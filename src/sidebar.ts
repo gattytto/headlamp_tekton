@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: EPL-2.0
+﻿// SPDX-License-Identifier: EPL-2.0
 // headlamp_tekton/src/sidebar.ts
 import { registerSidebarEntry } from '@kinvolk/headlamp-plugin/lib';
 

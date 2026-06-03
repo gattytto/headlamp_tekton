@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: EPL-2.0
-
+﻿// SPDX-License-Identifier: EPL-2.0
+// headlamp_tekton/src/pages/EventListeners.tsx
 import { ResourceListView, StatusLabel } from '@kinvolk/headlamp-plugin/lib/components/common';
 import { EventListenerClass } from '../crd/eventlistener';
 import { LinkToResource } from '../components/LinkToResource';

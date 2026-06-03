@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: EPL-2.0
-
+﻿// SPDX-License-Identifier: EPL-2.0
+// headlamp_tekton/src/components/TektonGlance.tsx
 import Box from '@mui/material/Box';
 import { StatusLabel } from '@kinvolk/headlamp-plugin/lib/components/common';
 import { TektonRunActions } from './RunActions';

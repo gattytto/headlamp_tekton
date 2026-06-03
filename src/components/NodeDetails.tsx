@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: EPL-2.0
-
+﻿// SPDX-License-Identifier: EPL-2.0
+// headlamp_tekton/src/components/NodeDetails.tsx
 import { DetailsGrid, NameValueTable, SectionBox } from '@kinvolk/headlamp-plugin/lib/components/common';
 import { Fragment } from 'react';
 import { ClusterInterceptorClass } from '../crd/clusterinterceptor';

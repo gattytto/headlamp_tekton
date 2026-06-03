@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: EPL-2.0
-
+﻿// SPDX-License-Identifier: EPL-2.0
+// headlamp_tekton/src/pages/EventListenerDetails.tsx
 import { useParams } from 'react-router-dom';
 import { DetailsGrid, SectionBox } from '@kinvolk/headlamp-plugin/lib/components/common';
 import { EventListenerClass } from '../crd/eventlistener';
