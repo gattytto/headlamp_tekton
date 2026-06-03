@@ -1,6 +1,4 @@
-# Headlamp Tekton Plugin
-
-<img width="100" height="100" src="src/favicon.svg">
+# <img width="100" height="100" src="src/favicon.svg"> Headlamp Tekton Plugin
 
 This Headlamp plugin adds Tekton-focused resource views, run actions, and graph-map support for Tekton Pipelines and Triggers resources. It is built for inspecting the path from trigger inputs to pipeline definitions, task execution, and runtime results.
 
